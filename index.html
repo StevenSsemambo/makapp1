@@ -1,0 +1,2315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#2D6A27">
+<meta name="description" content="MakChat — The official student network of Makerere University. Connect, collaborate, and thrive.">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MakChat">
+<title>MakChat — Makerere University Student Network</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+
+<script src="https://cdn.jsdelivr.net/npm/appwrite@15/dist/iife/sdk.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+/* ================================================================
+   MakCHAT — DESIGN SYSTEM
+   Makerere University Official Branding
+   Primary: #2D6A27 (Makerere Green)
+   Secondary: #8B0000 (Makerere Red)
+   Accent:  #FFD700 (Gold)
+   ================================================================ */
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  /* Makerere Green (primary) */
+  --blue:     #2D6A27;
+  --blue2:    #3a8a32;
+  --blue3:    #48a83e;
+  --lightblue:#e8f5e2;
+  /* Makerere Red (accent/secondary) */
+  --red:      #8B0000;
+  --red2:     #a80000;
+  --red3:     #c0392b;
+  --lightred: #fdecea;
+  /* Gold */
+  --gold:     #FFD700;
+  --gold2:    #FFC107;
+  /* Neutrals */
+  --cream:    #f7faf6;
+  --white:    #ffffff;
+  --sand:     #e4ece3;
+  --text:     #0d1a0c;
+  --muted:    #5a6b59;
+  --danger:   #c0392b;
+  --success:  #16a34a;
+  --radius:   12px;
+  --shadow:   0 1px 8px rgba(45,106,39,0.10);
+  --shadow-lg:0 8px 32px rgba(45,106,39,0.18);
+  --sidebar-w:72px;
+}
+
+@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+html { height:100%; -webkit-text-size-adjust:100%; }
+body {
+  font-family:'Inter',sans-serif;
+  background:var(--cream);
+  color:var(--text);
+  height:100%;
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-thumb { background:var(--sand); border-radius:4px; }
+
+/* ================================================================
+   LAYOUT SHELL
+   ================================================================ */
+#shell { display:none; height:100vh; height:100dvh; position:relative; }
+
+/* Sidebar */
+.sidebar {
+  position:fixed; left:0; top:0; bottom:0;
+  width:var(--sidebar-w);
+  background:var(--blue);
+  display:flex; flex-direction:column; align-items:center;
+  padding:18px 0 14px; gap:3px; z-index:300;
+}
+.sb-logo {
+  font-size:11px; font-weight:800; color:var(--gold);
+  margin-bottom:14px; cursor:pointer; letter-spacing:0.5px;
+  text-align:center; line-height:1.2; padding:0 6px;
+}
+.sb-btn {
+  width:46px; height:46px; border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; border:none; background:transparent;
+  color:rgba(255,255,255,0.5); font-size:18px;
+  transition:all 0.18s; position:relative;
+}
+.sb-btn:hover { background:rgba(255,255,255,0.12); color:rgba(255,255,255,0.9); }
+.sb-btn.active { background:var(--gold); color:var(--blue); }
+.sb-dot { position:absolute; top:8px; right:8px; width:7px; height:7px; background:var(--red3); border-radius:50%; border:2px solid var(--blue); }
+.sb-spacer { flex:1; }
+.sb-avatar {
+  width:38px; height:38px; border-radius:10px;
+  background:var(--gold); display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:13px; color:var(--blue); cursor:pointer;
+  border:2px solid rgba(255,255,255,0.2); margin-top:6px;
+}
+
+/* Bottom nav — mobile */
+.bottom-nav {
+  display:none; position:fixed; bottom:0; left:0; right:0;
+  background:var(--blue); z-index:300;
+  padding-bottom:env(safe-area-inset-bottom,0);
+  border-top:2px solid rgba(139,0,0,0.35);
+  box-shadow:0 -2px 12px rgba(45,106,39,0.2);
+}
+.bottom-nav-inner {
+  display:flex; height:56px;
+  overflow-x:auto; -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+.bottom-nav-inner::-webkit-scrollbar { display:none; }
+.bn-btn {
+  flex:0 0 auto; min-width:58px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:2px; border:none; background:transparent; color:rgba(255,255,255,0.45);
+  cursor:pointer; font-size:9px; font-weight:600; font-family:'Inter',sans-serif;
+  position:relative; transition:color 0.18s; text-transform:uppercase; letter-spacing:0.3px;
+  padding:0 4px;
+}
+.bn-btn .bn-icon { font-size:17px; line-height:1; }
+.bn-btn.active { color:var(--gold); }
+.bn-dot { position:absolute; top:7px; right:calc(50% - 13px); width:6px; height:6px; background:var(--red3); border-radius:50%; }
+
+/* Main content */
+.main { position:fixed; top:0; right:0; bottom:0; left:var(--sidebar-w); display:flex; overflow:hidden; }
+@media (min-width:769px) { :root { --sidebar-w:72px; } }
+.content { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:26px 28px; }
+.content-inner { max-width:860px; margin:0 auto; }
+.right-panel {
+  width:268px; background:var(--white); border-left:1px solid var(--sand);
+  overflow-y:auto; -webkit-overflow-scrolling:touch; flex-shrink:0; padding:22px 16px;
+}
+
+/* ================================================================
+   DESKTOP — Breathing room improvements
+   ================================================================ */
+@media (min-width:769px) {
+  :root { --sidebar-w:80px; }
+  .content { padding:28px 32px; max-width:900px; }
+  .card { padding:18px; }
+  .stat-card { padding:18px 16px; }
+  .page-header { margin-bottom:28px; }
+  .section-title { margin-bottom:16px; }
+  .feed-item { padding:16px; gap:14px; }
+  .grid-2 { gap:16px; }
+  .grid-3 { gap:16px; }
+  .grid-4 { gap:16px; }
+}
+
+/* ================================================================
+   MOBILE RESPONSIVE — Complete Ground-Up Fix
+   ================================================================ */
+
+/* ── More drawer item style ── */
+.more-item {
+  display:flex; align-items:center; gap:14px; width:100%; padding:11px 14px;
+  border:none; background:transparent; font-family:'Inter',sans-serif;
+  font-size:14px; font-weight:500; color:var(--text); cursor:pointer;
+  border-radius:10px; text-align:left; transition:background 0.15s;
+}
+.more-item:hover, .more-item.active { background:var(--lightblue); color:var(--blue); font-weight:600; }
+.more-item span:first-child { font-size:19px; width:26px; text-align:center; flex-shrink:0; }
+body.dark-mode .more-item { color:var(--text); }
+body.dark-mode .more-item:hover { background:var(--sand); }
+body.dark-mode #more-drawer { background:var(--white); }
+
+@media (max-width:768px) {
+  /* ── Root overrides ── */
+  :root { --sidebar-w:0px; }
+
+  /* ── Hide desktop sidebar, show bottom nav ── */
+  .sidebar { display:none !important; }
+  .bottom-nav { display:block; }
+  .right-panel { display:none !important; }
+
+  /* ── Main shell — sits above bottom nav ── */
+  .main {
+    position:fixed;
+    top:0; left:0; right:0;
+    bottom:calc(58px + env(safe-area-inset-bottom, 0px));
+    display:flex;
+    overflow:hidden;
+  }
+
+  /* ── Content area ── */
+  .content {
+    flex:1;
+    overflow-y:auto;
+    overflow-x:hidden;
+    -webkit-overflow-scrolling:touch;
+    padding:14px 12px 20px;
+    width:100%;
+    box-sizing:border-box;
+  }
+
+  /* Force ALL children to respect container width */
+  .content, .content * {
+    max-width:100%;
+    box-sizing:border-box;
+  }
+  .content { word-break:break-word; overflow-wrap:break-word; }
+
+  /* ── Bottom nav ── */
+  .bottom-nav {
+    position:fixed; bottom:0; left:0; right:0; z-index:300;
+    padding-bottom:env(safe-area-inset-bottom, 0px);
+  }
+  .bottom-nav-inner {
+    display:flex;
+    height:58px;
+  }
+  .bn-btn {
+    flex:1;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:2px; border:none; background:transparent;
+    color:rgba(255,255,255,0.5);
+    cursor:pointer; font-size:9px; font-weight:600; font-family:'Inter',sans-serif;
+    position:relative; text-transform:uppercase; letter-spacing:0.3px; padding:0;
+  }
+  .bn-btn .bn-icon { font-size:20px; line-height:1; }
+  .bn-btn.active { color:var(--gold); }
+  #bn-more-btn {
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:2px; border:none; background:transparent; color:rgba(255,255,255,0.5);
+    cursor:pointer; font-size:9px; font-weight:600; font-family:'Inter',sans-serif;
+    text-transform:uppercase; letter-spacing:0.3px; padding:0;
+  }
+  #bn-more-btn .bn-icon { font-size:22px; line-height:1; }
+
+  /* ── Typography ── */
+  .page-title { font-size:20px !important; line-height:1.2; }
+  .page-sub { font-size:12px; }
+  .section-title { font-size:11px; margin-bottom:10px; letter-spacing:0.4px; }
+
+  /* ── Page header ── */
+  .page-header {
+    display:flex; flex-wrap:wrap; align-items:center;
+    justify-content:space-between; gap:8px;
+    margin-bottom:14px; padding-right:0;
+  }
+  .page-header > div:first-child { flex:1; min-width:0; }
+  .page-header > div:first-child .page-title { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .page-header > .flex { flex-wrap:wrap; gap:6px; }
+  /* Buttons in header shrink on tiny screens */
+  .page-header .btn { padding:7px 10px; font-size:11px; }
+  .page-header .btn-sm { padding:5px 8px; font-size:10px; }
+  /* People search in page header goes full width below title */
+  #people-search { width:100% !important; max-width:100% !important; }
+
+  /* ── Grid system ── */
+  .grid-4 { grid-template-columns:1fr 1fr !important; gap:8px !important; }
+  .grid-3 { grid-template-columns:1fr 1fr !important; gap:8px !important; }
+  .grid-2 { grid-template-columns:1fr 1fr; gap:8px; }
+  .home-cols { grid-template-columns:1fr !important; }
+  .home-layout { grid-template-columns:1fr !important; gap:0 !important; }
+  .home-main-col { margin-bottom:20px; }
+  .home-side-col { width:100%; }
+  #home-ann, #home-active, #home-events { width:100%; }
+  .people-grid { grid-template-columns:1fr 1fr !important; gap:8px !important; }
+  #home-stats { grid-template-columns:1fr 1fr !important; gap:8px !important; }
+
+  /* ── Cards ── */
+  .card { padding:12px; border-radius:10px; }
+  .stat-card { padding:11px 10px; }
+  .match-card { padding:11px 9px; }
+  .tribe-card { padding:11px; }
+  .ann-card { padding:10px 12px; }
+  .lf-card { padding:11px; }
+  .hostel-card { padding:11px; }
+  .gig-card { padding:11px; }
+  .opp-card { padding:11px; }
+  .feed-item { padding:11px; gap:9px; }
+  .mkt-card { padding:11px; }
+
+  /* ── Stat cards ── */
+  .stat-value { font-size:20px !important; }
+  .stat-label { font-size:9px; }
+  .stat-delta { font-size:10px; }
+
+  /* ── Avatars ── */
+  .av-2xl { width:50px !important; height:50px !important; font-size:16px !important; border-radius:10px !important; }
+  .av-xl  { width:42px !important; height:42px !important; font-size:14px !important; }
+
+  /* ── Buttons ── */
+  .btn { padding:8px 12px; font-size:12px; }
+  .btn-sm { padding:5px 9px; font-size:11px; border-radius:7px; }
+
+  /* ── Inputs — 16px prevents iOS zoom ── */
+  .input { font-size:16px !important; }
+  .input-label { font-size:11px; }
+
+  /* ── Pills ── */
+  .pill { font-size:10px; padding:2px 7px; }
+
+  /* ── Modals — slide up from bottom ── */
+  .modal-backdrop {
+    align-items:flex-end !important;
+    padding:0 !important;
+  }
+  .modal {
+    border-radius:22px 22px 0 0 !important;
+    max-height:92dvh !important;
+    padding:8px 14px calc(24px + env(safe-area-inset-bottom,0px)) !important;
+    width:100% !important;
+    max-width:100% !important;
+    overflow-y:auto;
+  }
+  .modal::before {
+    content:''; display:block; width:36px; height:4px;
+    background:var(--sand); border-radius:2px; margin:10px auto 8px;
+  }
+  .overlay { padding:0 !important; align-items:flex-end !important; }
+  .overlay-box {
+    border-radius:22px 22px 0 0 !important;
+    max-height:93dvh !important;
+    padding:8px 14px calc(24px + env(safe-area-inset-bottom,0px)) !important;
+    width:100% !important;
+    max-width:100% !important;
+  }
+  .overlay-box::before {
+    content:''; display:block; width:36px; height:4px;
+    background:var(--sand); border-radius:2px; margin:10px auto 8px;
+  }
+
+  /* ── Filter chips ── */
+  .filter-scroll {
+    overflow-x:auto !important; flex-wrap:nowrap !important;
+    padding-bottom:6px; -webkit-overflow-scrolling:touch;
+    scrollbar-width:none; -ms-overflow-style:none;
+  }
+  .filter-scroll::-webkit-scrollbar { display:none; }
+
+  /* ── Chat layout — stacked ── */
+  .chat-layout {
+    flex-direction:column !important;
+    height:calc(100dvh - 60px - env(safe-area-inset-bottom,0px)) !important;
+    border-radius:0 !important;
+    box-shadow:none !important;
+  }
+  .chat-list-panel {
+    width:100% !important; border-right:none !important;
+    border-bottom:1px solid var(--sand);
+    max-height:170px; flex-shrink:0;
+    overflow-y:auto;
+  }
+  .chat-convo-panel { flex:1; min-height:0; display:flex; flex-direction:column; }
+  .chat-messages { flex:1; overflow-y:auto; }
+  .chat-input-row { flex-shrink:0; }
+
+  /* ── Channel layout — stacked vertically on mobile ── */
+  .channel-layout {
+    flex-direction:column !important;
+    height:calc(100dvh - 60px - env(safe-area-inset-bottom,0px)) !important;
+    border-radius:0 !important;
+    box-shadow:none !important;
+  }
+  .channel-list-panel {
+    width:100% !important;
+    max-height:200px;
+    min-height:48px;
+    border-right:none !important;
+    border-bottom:2px solid var(--sand);
+    padding:6px 8px !important;
+    flex-direction:column !important;
+    gap:2px !important;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+    flex-shrink:0;
+    display:flex !important;
+  }
+  .channel-item {
+    width:100% !important;
+    min-width:0 !important;
+    white-space:normal !important;
+    padding:7px 10px;
+    flex-shrink:0;
+  }
+  .channel-convo-panel { flex:1; min-height:0; display:flex; flex-direction:column; overflow:hidden; }
+
+  /* ── Events — stack date + content ── */
+  .event-card { flex-direction:column; gap:10px; align-items:flex-start; }
+  .event-date-badge { width:auto !important; height:auto !important; flex-direction:row !important; padding:6px 12px !important; gap:6px; border-radius:8px; }
+  .event-date-day { font-size:16px !important; }
+  .event-date-mon { font-size:10px; }
+
+  /* ── Opportunities card ── */
+  .opp-card .flex { flex-wrap:wrap; }
+  .opp-card .flex-1 { min-width:0; width:100%; }
+  .opp-card .btn-sm { margin-top:6px; }
+
+  /* ── Profile hero — stack on small screens ── */
+  #tab-profile .card-blue .flex { flex-wrap:wrap; }
+
+  /* ── Announcements ── */
+  .ann-card .flex { flex-wrap:wrap; gap:4px; }
+
+  /* ── Notification panel ── */
+  .notif-panel { width:100% !important; border-radius:22px 22px 0 0; top:auto !important; }
+
+  /* ── Toast above bottom nav ── */
+  .toast-wrap { bottom:70px; }
+
+  /* ── Auth screen ── */
+  #auth-screen { padding:12px; }
+  .auth-card { padding:18px 14px; }
+  .auth-splash-appname { font-size:22px; }
+
+  /* ── Gap utilities ── */
+  .gap-20 { gap:12px; }
+  .gap-16 { gap:10px; }
+  .gap-14 { gap:8px; }
+  .gap-12 { gap:8px; }
+
+  /* ── Prevent specific inline-styled elements from overflowing ── */
+  [style*="width:268px"] { width:100% !important; }
+  [style*="width:280px"] { width:100% !important; }
+  [style*="width:320px"] { width:100% !important; }
+  [style*="width:190px"] { width:100% !important; max-width:100% !important; }
+}
+
+/* ── Smallest phones (≤390px) ── */
+@media (max-width:390px) {
+  .content { padding:10px 10px 16px; }
+  .page-title { font-size:17px !important; }
+  .grid-4 { grid-template-columns:1fr 1fr !important; gap:6px !important; }
+  .grid-3 { grid-template-columns:1fr 1fr !important; gap:6px !important; }
+  .grid-2 { gap:6px; }
+  .stat-value { font-size:18px !important; }
+  .card { padding:10px; }
+  .btn { padding:7px 10px; font-size:11px; }
+  .stat-card { padding:10px 8px; }
+  .auth-card { padding:14px 12px; }
+  .match-card { padding:10px 8px; }
+  .people-grid { grid-template-columns:1fr 1fr !important; gap:6px !important; }
+  .feed-item { padding:10px; gap:8px; }
+  .gig-card, .hostel-card, .lf-card, .mkt-card { padding:9px; }
+  .page-header .btn { padding:6px 8px; font-size:10px; }
+}
+
+/* ── Remove the scroll hint animation from old code ── */
+
+/* ================================================================
+   SCREENS
+   ================================================================ */
+.screen { display:none; }
+.screen.active { display:block; animation:fadeUp 0.25s ease; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+/* ================================================================
+   AUTH SCREEN
+   ================================================================ */
+#auth-screen {
+  position:fixed; inset:0;
+  background:linear-gradient(160deg, #0f2b0c 0%, #2D6A27 45%, #6b1010 80%, #3a0808 100%);
+  display:flex; align-items:center; justify-content:center;
+  flex-direction:column; gap:0; padding:16px; z-index:998;
+  overflow-y:auto;
+}
+#auth-screen.hidden { display:none !important; }
+
+/* Splash branding above login card */
+.auth-splash {
+  text-align:center; margin-bottom:18px; flex-shrink:0;
+}
+.auth-splash-badge {
+  width:72px; height:72px; margin:0 auto 10px;
+  background:rgba(255,255,255,0.1); border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:36px; border:2px solid rgba(255,215,0,0.5);
+  box-shadow:0 0 20px rgba(255,215,0,0.15);
+}
+.auth-splash-appname {
+  font-size:30px; font-weight:900; color:var(--gold);
+  letter-spacing:-0.5px; line-height:1;
+}
+.auth-splash-uni {
+  font-size:11px; color:rgba(255,255,255,0.6); margin-top:5px;
+  text-transform:uppercase; letter-spacing:1.2px; font-weight:600;
+}
+.auth-splash-motto {
+  font-size:12px; color:rgba(255,255,255,0.4); margin-top:5px; font-style:italic;
+}
+/* Makerere red stripe accent */
+.auth-stripe {
+  width:40px; height:3px; border-radius:2px;
+  background:linear-gradient(90deg, var(--red), var(--gold));
+  margin:8px auto 0;
+}
+
+.auth-card {
+  background:var(--white); border-radius:20px; padding:28px 24px;
+  width:100%; max-width:400px; box-shadow:0 24px 80px rgba(0,0,0,0.45);
+  flex-shrink:0;
+}
+.auth-logo { display:flex; align-items:center; gap:12px; margin-bottom:20px; }
+.auth-crest {
+  width:42px; height:42px; background:var(--blue); border-radius:11px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:20px; flex-shrink:0; border:2px solid var(--gold);
+}
+.auth-tab-row { display:flex; background:var(--sand); border-radius:10px; padding:4px; margin-bottom:20px; }
+.auth-tab {
+  flex:1; padding:8px; border-radius:7px; border:none; background:transparent;
+  font-family:'Inter',sans-serif; font-size:14px; font-weight:500;
+  color:var(--muted); cursor:pointer; transition:all 0.2s;
+}
+.auth-tab.active { background:var(--white); color:var(--blue); box-shadow:var(--shadow); font-weight:600; }
+
+/* Sematech developer footer */
+.sematech-footer {
+  margin-top:14px; text-align:center;
+  font-size:10px; color:rgba(255,255,255,0.35);
+  letter-spacing:0.8px; flex-shrink:0;
+}
+.sematech-footer strong {
+  color:rgba(255,215,0,0.65); font-weight:700;
+  text-transform:uppercase; letter-spacing:1px;
+}
+
+/* ================================================================
+   ONBOARDING
+   ================================================================ */
+#onboarding {
+  position:fixed; inset:0; background:linear-gradient(160deg, #1a4016 0%, #2D6A27 50%, #8B1A1A 100%);
+  display:flex; align-items:center; justify-content:center; padding:20px; z-index:999;
+}
+#onboarding.hidden { display:none; }
+.ob-card { background:var(--white); border-radius:22px; padding:34px 26px; width:100%; max-width:440px; box-shadow:0 24px 80px rgba(0,0,0,0.32); }
+.ob-dots { display:flex; gap:5px; margin-bottom:24px; }
+.ob-dot { height:4px; border-radius:2px; background:var(--sand); flex:1; transition:all 0.3s; }
+.ob-dot.done { background:var(--red2); }
+.ob-dot.active { background:var(--blue); flex:2; }
+
+/* ================================================================
+   COMPONENTS
+   ================================================================ */
+
+/* Cards */
+.card { background:var(--white); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); }
+.card-hov:hover { transform:translateY(-2px); box-shadow:var(--shadow-lg); transition:all 0.18s; }
+.card-blue { background:var(--blue); color:var(--white); }
+.card-gold { background:linear-gradient(135deg, var(--red) 0%, #c0392b 100%); color:white; }
+.card-blue2 { background:var(--blue2); color:var(--white); }
+.card-dark { background:#0d2b0a; color:var(--white); }
+
+/* Grids */
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+.grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+
+/* Stat card */
+.stat-card { background:var(--white); border-radius:var(--radius); padding:14px 13px; box-shadow:var(--shadow); }
+.stat-label { font-size:10px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:5px; }
+.stat-value { font-size:26px; font-weight:800; color:var(--blue); line-height:1; }
+.stat-delta { font-size:11px; color:var(--success); margin-top:3px; font-weight:500; }
+
+/* Buttons */
+.btn {
+  display:inline-flex; align-items:center; gap:5px; padding:9px 15px; border-radius:9px;
+  font-family:'Inter',sans-serif; font-size:13px; font-weight:600;
+  cursor:pointer; border:none; transition:all 0.18s; white-space:nowrap; line-height:1;
+}
+.btn-primary { background:var(--blue); color:var(--white); }
+.btn-primary:hover { background:var(--blue2); }
+.btn-gold { background:var(--red); color:white; font-weight:700; }
+.btn-gold:hover { background:var(--red2); }
+.btn-ghost { background:transparent; color:var(--muted); border:1.5px solid var(--sand); }
+.btn-ghost:hover { background:var(--sand); color:var(--text); }
+.btn-danger { background:var(--danger); color:white; }
+.btn-success { background:var(--success); color:white; }
+.btn-sm { padding:6px 11px; font-size:12px; border-radius:7px; }
+.btn-full { width:100%; justify-content:center; }
+
+/* Pills */
+.pill { display:inline-flex; align-items:center; gap:3px; padding:3px 8px; border-radius:20px; font-size:11px; font-weight:600; white-space:nowrap; }
+.pill-blue  { background:rgba(45,106,39,0.12); color:var(--blue); }
+.pill-gold  { background:rgba(192,57,43,0.12); color:var(--red); }
+.pill-green { background:rgba(45,106,39,0.12); color:var(--blue); }
+.pill-red   { background:rgba(139,26,26,0.10); color:var(--danger); }
+.pill-gray  { background:var(--sand); color:var(--muted); }
+.pill-anon  { background:rgba(90,115,86,0.12); color:var(--muted); }
+
+/* Avatar */
+.avatar { border-radius:10px; background:var(--lightblue); display:flex; align-items:center; justify-content:center; font-weight:700; color:var(--blue); flex-shrink:0; }
+.av-xs  { width:24px; height:24px; border-radius:7px; }
+.av-sm  { width:32px; height:32px; border-radius:9px; }
+.av-md  { width:40px; height:40px; }
+.av-lg  { width:48px; height:48px; }
+.av-xl  { width:56px; height:56px; font-size:18px; }
+.av-2xl { width:72px; height:72px; border-radius:16px; font-size:24px; }
+
+/* Page header */
+.page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; gap:12px; }
+.page-title { font-size:24px; font-weight:800; color:var(--blue); line-height:1.2; }
+.page-sub { font-size:13px; color:var(--muted); margin-top:3px; font-weight:400; }
+.section-title { font-size:13px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.6px; margin-bottom:12px; }
+
+/* Feed items */
+.feed-item {
+  display:flex; gap:12px; background:var(--white); border-radius:var(--radius);
+  padding:14px; box-shadow:var(--shadow); cursor:pointer; transition:box-shadow 0.18s;
+}
+.feed-item:hover { box-shadow:var(--shadow-lg); }
+
+/* People card */
+.match-card {
+  background:var(--white); border-radius:var(--radius); padding:16px;
+  box-shadow:var(--shadow); text-align:center; transition:all 0.18s;
+}
+.match-card:hover { box-shadow:var(--shadow-lg); transform:translateY(-2px); }
+
+/* Tribe card */
+.tribe-card {
+  background:var(--white); border-radius:var(--radius); padding:16px;
+  box-shadow:var(--shadow); transition:all 0.18s; cursor:pointer;
+}
+.tribe-card:hover { box-shadow:var(--shadow-lg); }
+
+/* Marketplace card */
+.mkt-card {
+  background:var(--white); border-radius:var(--radius); padding:14px;
+  box-shadow:var(--shadow); transition:all 0.18s; cursor:pointer; overflow:hidden;
+}
+.mkt-card:hover { box-shadow:var(--shadow-lg); transform:translateY(-2px); }
+.mkt-emoji { font-size:32px; margin-bottom:10px; display:block; }
+.mkt-price { font-size:16px; font-weight:800; color:var(--blue); }
+
+/* Opportunity card */
+.opp-card { background:var(--white); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); }
+
+/* Hostel card */
+.hostel-card { background:var(--white); border-radius:var(--radius); padding:14px; box-shadow:var(--shadow); cursor:pointer; transition:all 0.18s; }
+.hostel-card:hover { box-shadow:var(--shadow-lg); transform:translateY(-2px); }
+
+/* Gig/Skills card */
+.gig-card { background:var(--white); border-radius:var(--radius); padding:14px; box-shadow:var(--shadow); cursor:pointer; transition:all 0.18s; }
+.gig-card:hover { box-shadow:var(--shadow-lg); transform:translateY(-2px); }
+
+/* Chat */
+.chat-layout { display:flex; height:calc(100vh - 160px); height:calc(100dvh - 160px); gap:0; overflow:hidden; border-radius:var(--radius); box-shadow:var(--shadow); background:var(--white); }
+.chat-list-panel { width:280px; border-right:1px solid var(--sand); overflow-y:auto; flex-shrink:0; }
+.chat-convo-panel { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+.chat-item { display:flex; align-items:center; gap:10px; padding:12px 14px; cursor:pointer; border-bottom:1px solid var(--cream); transition:background 0.15s; }
+.chat-item:hover { background:var(--cream); }
+.chat-item.active { background:var(--lightblue); }
+.chat-item-name { font-size:13px; font-weight:600; }
+.chat-item-preview { font-size:12px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.chat-messages { flex:1; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:10px; }
+.chat-bubble { max-width:72%; padding:10px 13px; border-radius:14px; font-size:13px; line-height:1.55; }
+.chat-bubble.mine { background:var(--blue); color:white; border-bottom-right-radius:3px; align-self:flex-end; }
+.chat-bubble.theirs { background:var(--sand); color:var(--text); border-bottom-left-radius:3px; align-self:flex-start; }
+.chat-input-row { padding:12px; border-top:1px solid var(--sand); display:flex; gap:8px; align-items:center; }
+
+/* Events */
+.event-card { background:var(--white); border-radius:var(--radius); padding:14px; box-shadow:var(--shadow); display:flex; gap:14px; cursor:pointer; transition:all 0.18s; }
+.event-card:hover { box-shadow:var(--shadow-lg); }
+.event-date-badge { width:50px; height:54px; background:var(--blue); border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; flex-shrink:0; }
+.event-date-day { font-size:20px; font-weight:800; color:#FFD700; line-height:1; }
+.event-date-mon { font-size:10px; font-weight:600; color:rgba(255,255,255,0.7); text-transform:uppercase; }
+
+/* Announcements */
+.ann-card { border-radius:var(--radius); padding:14px 16px; margin-bottom:10px; border-left:4px solid var(--blue); background:var(--white); box-shadow:var(--shadow); }
+.ann-card.urgent { border-left-color:var(--red); }
+.ann-card.gold { border-left-color:var(--red2); }
+
+/* Lost & Found */
+.lf-card { background:var(--white); border-radius:var(--radius); padding:14px; box-shadow:var(--shadow); cursor:pointer; transition:all 0.18s; }
+.lf-card:hover { box-shadow:var(--shadow-lg); }
+
+/* Progress */
+.progress-bar { height:6px; background:var(--sand); border-radius:3px; overflow:hidden; }
+.progress-fill { height:100%; border-radius:3px; background:var(--blue2); transition:width 0.6s; }
+.progress-fill-gold { background:var(--red); }
+
+/* Live dot */
+.live-dot { width:8px; height:8px; border-radius:50%; background:#22c55e; animation:pulse 1.5s infinite; flex-shrink:0; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.6;transform:scale(1.3)} }
+
+/* ================================================================
+   ANTI-CROWDING: content max width + spacing improvements
+   ================================================================ */
+.content { max-width:100%; }
+@media (min-width:1100px) {
+  .content { padding:30px 40px; }
+}
+/* Section spacing */
+.mb-20 { margin-bottom:20px; }
+.mt-24 { margin-top:24px; }
+/* Better card radius on mobile */
+/* Line height improvements for readability */
+.feed-item .text-sm, .ann-card .text-sm { line-height:1.6; }
+/* Bottom nav icons slightly larger for easier tapping */
+.bn-btn { padding:0 6px; min-width:60px; }
+/* Home banner more compact on mobile */
+/* Scrollbar styled for content area */
+.content::-webkit-scrollbar { width:4px; }
+.content::-webkit-scrollbar-thumb { background:var(--sand); border-radius:4px; }
+/* Input label spacing */
+.input-label { margin-bottom:6px; }
+/* Stat card delta text */
+.stat-delta { font-size:10px; }
+/* Reduce gap between stacked items on mobile */
+
+/* ================================================================
+   MOBILE RIGHT PANEL DRAWER — fixed missing styles
+   ================================================================ */
+#mobile-rp-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 350;
+  backdrop-filter: blur(2px);
+}
+#mobile-rp-overlay.open { display: block; }
+
+#mobile-rp-drawer {
+  display: none;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 80%;
+  max-width: 320px;
+  background: var(--white);
+  z-index: 360;
+  flex-direction: column;
+  box-shadow: 4px 0 30px rgba(0,0,0,0.2);
+  overflow-y: auto;
+  padding: 0 16px 32px;
+  transform: translateX(-100%);
+  transition: transform 0.28s ease;
+}
+#mobile-rp-drawer.open {
+  display: flex;
+  transform: translateX(0);
+}
+
+#mobile-rp-btn {
+  display: none;
+  position: fixed;
+  bottom: calc(68px + env(safe-area-inset-bottom,0px));
+  right: 14px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--blue);
+  color: white;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(45,106,39,0.4);
+  z-index: 320;
+  align-items: center;
+  justify-content: center;
+}
+@media (max-width: 768px) {
+  #mobile-rp-btn { display: flex; }
+}
+
+/* ================================================================
+   CONFIRM DIALOG
+   ================================================================ */
+.confirm-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  z-index: 700;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.confirm-backdrop.open { display: flex; }
+.confirm-box {
+  background: var(--white);
+  border-radius: 18px;
+  padding: 28px 24px;
+  width: 100%;
+  max-width: 360px;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.3);
+  text-align: center;
+}
+.confirm-icon { font-size: 40px; margin-bottom: 12px; }
+.confirm-title { font-size: 17px; font-weight: 700; color: var(--blue); margin-bottom: 8px; }
+.confirm-msg { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 20px; }
+
+/* Post image preview */
+.post-img { width:100%; max-height:220px; object-fit:cover; border-radius:10px; margin-top:10px; display:block; }
+.img-preview-wrap { position:relative; display:inline-block; margin-top:8px; }
+.img-preview-wrap img { max-height:120px; border-radius:8px; display:block; }
+.img-preview-remove { position:absolute; top:-6px; right:-6px; background:var(--red); color:white; border:none; border-radius:50%; width:20px; height:20px; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+
+/* WhatsApp button */
+.btn-whatsapp { background:#25D366; color:white; }
+.btn-whatsapp:hover { background:#1da851; }
+
+/* Hostel star rating */
+.hostel-stars { display:flex; gap:4px; cursor:pointer; }
+.hostel-star { font-size:22px; color:#d1d5db; transition:color 0.1s; }
+.hostel-star.filled { color:#FFD700; }
+.hostel-star:hover { color:#FFD700; }
+
+/* Unread badge in chat */
+.chat-unread-badge { background:var(--red); color:white; font-size:9px; font-weight:700; min-width:16px; height:16px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; padding:0 3px; flex-shrink:0; }
+
+/* ── ONLINE DOT ── */
+.online-dot { width:10px; height:10px; background:#22c55e; border-radius:50%; border:2px solid var(--white); flex-shrink:0; }
+.avatar-wrapper { position:relative; display:inline-flex; }
+.avatar-wrapper .online-dot { position:absolute; bottom:0; right:0; }
+
+/* ── TYPING INDICATOR ── */
+.typing-indicator { display:flex; align-items:center; gap:4px; padding:8px 14px; background:var(--sand); border-radius:18px 18px 18px 4px; width:fit-content; }
+.typing-dot { width:6px; height:6px; background:var(--muted); border-radius:50%; animation:typingBounce 1.2s infinite; }
+.typing-dot:nth-child(2) { animation-delay:0.2s; }
+.typing-dot:nth-child(3) { animation-delay:0.4s; }
+@keyframes typingBounce { 0%,60%,100% { transform:translateY(0); } 30% { transform:translateY(-6px); } }
+
+/* ── EMOJI REACTION PICKER ── */
+.reaction-picker { position:absolute; background:var(--white); border-radius:24px; padding:6px 10px; display:flex; gap:8px; box-shadow:0 4px 20px rgba(0,0,0,0.18); z-index:200; bottom:calc(100% + 6px); }
+.reaction-btn { font-size:18px; cursor:pointer; transition:transform 0.15s; padding:2px; border:none; background:transparent; border-radius:8px; }
+.reaction-btn:hover { transform:scale(1.35); }
+.bubble-reactions { display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
+.reaction-chip { background:var(--sand); border-radius:10px; padding:2px 7px; font-size:11px; display:flex; align-items:center; gap:3px; cursor:pointer; border:1.5px solid transparent; }
+.reaction-chip.mine { border-color:var(--blue); background:var(--lightblue); }
+
+/* ── DATE SEPARATOR ── */
+.date-sep { display:flex; align-items:center; gap:10px; margin:12px 0; }
+.date-sep-line { flex:1; height:1px; background:var(--sand); }
+.date-sep-label { font-size:10px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap; }
+
+/* ── READ RECEIPTS ── */
+.read-tick { font-size:11px; color:var(--muted); margin-left:3px; }
+.read-tick.blue { color:#2563eb; }
+
+/* ── BUBBLE GROUPING (no tail for non-last) ── */
+.chat-bubble.mine.grouped { border-radius:18px 18px 18px 4px; }
+.chat-bubble.theirs.grouped { border-radius:18px 18px 4px 18px; }
+
+/* ── CHAT SEARCH BAR ── */
+.chat-search-bar { padding:8px 12px; border-bottom:1px solid var(--sand); }
+.chat-search-bar input { width:100%; padding:7px 12px; border-radius:20px; border:1.5px solid var(--sand); font-size:13px; font-family:'Inter',sans-serif; outline:none; background:var(--cream); color:var(--text); }
+.chat-search-bar input:focus { border-color:var(--blue); }
+
+/* ── GROUP CHAT MODAL ── */
+#group-chat-modal .modal { max-width:520px; }
+.group-chat-layout { display:flex; flex-direction:column; height:420px; border-radius:var(--radius); overflow:hidden; border:1px solid var(--sand); }
+.group-chat-messages { flex:1; overflow-y:auto; padding:12px; background:var(--cream); display:flex; flex-direction:column; gap:10px; }
+.group-chat-input-row { display:flex; gap:8px; padding:10px 12px; background:var(--white); border-top:1px solid var(--sand); }
+
+/* Image attach button */
+.attach-btn { background:var(--sand); border:none; padding:8px 10px; border-radius:8px; cursor:pointer; font-size:15px; color:var(--muted); transition:background 0.15s; flex-shrink:0; }
+.attach-btn:hover { background:var(--lightblue); color:var(--blue); }
+
+/* Deadline urgency colours */
+.deadline-urgent { color:var(--danger)!important; font-weight:700!important; }
+.deadline-warn { color:#d97706!important; font-weight:600!important; }
+
+body.dark-mode #mobile-rp-drawer { background: var(--white); }
+body.dark-mode .confirm-box { background: var(--white); }
+body.dark-mode .more-item { color: var(--text); }
+body.dark-mode .more-item:hover, body.dark-mode .more-item.active { background: var(--sand); }
+body.dark-mode #more-drawer { background: var(--white); }
+
+/* ================================================================
+   DARK MODE
+   ================================================================ */
+body.dark-mode {
+  --cream:    #0d1a0c;
+  --white:    #1a2d19;
+  --sand:     #243323;
+  --text:     #e8f5e2;
+  --muted:    #8aab88;
+  --lightblue:#1a2d19;
+  --shadow:   0 1px 8px rgba(0,0,0,0.4);
+  --shadow-lg:0 8px 32px rgba(0,0,0,0.55);
+  background: #0d1a0c;
+  color: #e8f5e2;
+}
+body.dark-mode .sidebar { background:#0d2b0a; border-right:1px solid #1a3d18; }
+body.dark-mode .bottom-nav { background:#0d2b0a; border-top:2px solid rgba(139,0,0,0.25); }
+body.dark-mode .right-panel { background:#1a2d19; border-left:1px solid #243323; }
+body.dark-mode .input { background:#0d1a0c; border-color:#243323; color:#e8f5e2; }
+body.dark-mode .input:focus { border-color:var(--blue2); }
+body.dark-mode .modal, body.dark-mode .overlay-box { background:#1a2d19; }
+body.dark-mode .notif-panel { background:#1a2d19; }
+body.dark-mode .chat-bubble.theirs { background:#243323; color:#e8f5e2; }
+body.dark-mode .ann-card { background:#1a2d19; }
+body.dark-mode .auth-card { background:#1a2d19; }
+body.dark-mode .page-title { color:#7dd87a; }
+body.dark-mode .text-blue { color:#7dd87a; }
+body.dark-mode .modal-x { background:#243323; color:#e8f5e2; }
+
+/* ================================================================
+   GLOBAL SEARCH OVERLAY
+   ================================================================ */
+#global-search-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,0.65); backdrop-filter:blur(6px);
+  z-index:800; display:none; align-items:flex-start; justify-content:center; padding:60px 20px 20px;
+}
+#global-search-overlay.open { display:flex; }
+.search-box {
+  background:var(--white); border-radius:18px; width:100%; max-width:600px;
+  box-shadow:0 24px 80px rgba(0,0,0,0.4); overflow:hidden;
+}
+.search-input-row {
+  display:flex; align-items:center; gap:12px; padding:16px 18px;
+  border-bottom:1px solid var(--sand);
+}
+.search-input-row input {
+  flex:1; border:none; outline:none; font-size:16px; font-family:'Inter',sans-serif;
+  background:transparent; color:var(--text);
+}
+.search-results { max-height:420px; overflow-y:auto; padding:8px; }
+.search-result-item {
+  display:flex; align-items:center; gap:12px; padding:10px 12px;
+  border-radius:10px; cursor:pointer; transition:background 0.15s;
+}
+.search-result-item:hover { background:var(--cream); }
+.search-result-icon { width:36px; height:36px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+.search-cat-header { font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.6px; padding:8px 12px 4px; }
+
+/* ================================================================
+   OFFLINE BANNER
+   ================================================================ */
+#offline-banner {
+  position:fixed;
+  bottom:calc(68px + env(safe-area-inset-bottom,0px));
+  left:50%; transform:translateX(-50%);
+  z-index:850;
+  background:linear-gradient(90deg,#92400e,#b45309);
+  color:white; padding:8px 14px; font-size:12px; font-weight:600;
+  display:none; align-items:center; justify-content:center; gap:6px;
+  border-radius:20px; box-shadow:0 4px 20px rgba(0,0,0,0.35);
+  white-space:nowrap;
+  max-width:calc(100vw - 32px);
+}
+#offline-banner.show { display:flex; }
+@media (min-width:769px) {
+  #offline-banner {
+    bottom:auto; top:18px;
+    left:auto; right:18px; transform:none;
+    border-radius:10px;
+  }
+}
+
+/* ================================================================
+   HOME LAYOUT — desktop 2-col, mobile full single-col stack
+   ================================================================ */
+.home-layout {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:18px;
+  align-items:start;
+}
+.home-main-col, .home-side-col { min-width:0; width:100%; }
+
+/* Home feed cards - compact */
+.home-feed-card {
+  cursor:pointer; padding:12px;
+  transition:box-shadow 0.15s;
+  width:100%; box-sizing:border-box;
+}
+.home-feed-card:hover { box-shadow:var(--shadow-lg); }
+
+/* Home announcement card */
+.home-ann-card {
+  width:100%; box-sizing:border-box;
+}
+
+/* Home event card */
+.home-event-card {
+  width:100%; box-sizing:border-box;
+  transition:box-shadow 0.15s;
+}
+.home-event-card:hover { box-shadow:var(--shadow-lg); }
+
+/* ================================================================
+   CHANNEL STYLES
+   ================================================================ */
+.channel-item {
+  display:flex; align-items:center; gap:10px; padding:10px 12px;
+  border-radius:10px; cursor:pointer; transition:background 0.15s; margin-bottom:4px;
+}
+.channel-item:hover { background:var(--cream); }
+.channel-item.active { background:var(--lightblue); }
+.channel-hash { width:30px; height:30px; border-radius:8px; background:var(--blue); display:flex; align-items:center; justify-content:center; color:white; font-size:13px; font-weight:700; flex-shrink:0; }
+.channel-layout { display:flex; height:calc(100dvh - 160px); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); background:var(--white); }
+.channel-list-panel { width:220px; border-right:1px solid var(--sand); overflow-y:auto; flex-shrink:0; padding:10px 8px; display:flex; flex-direction:column; gap:2px; }
+.channel-convo-panel { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+
+
+/* ================================================================
+   GIG RATINGS
+   ================================================================ */
+.star-rating { display:flex; gap:3px; }
+.star { font-size:14px; cursor:pointer; transition:transform 0.1s; }
+.star:hover { transform:scale(1.2); }
+.star.filled { color:#FFD700; }
+.star.empty { color:#d1d5db; }
+
+/* ================================================================
+   RICH EMPTY STATES
+   ================================================================ */
+.empty-state {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:50px 20px; text-align:center; grid-column:1/-1;
+}
+.empty-state-icon { font-size:56px; margin-bottom:16px; opacity:0.85; }
+.empty-state-title { font-size:17px; font-weight:700; color:var(--blue); margin-bottom:8px; }
+.empty-state-desc { font-size:13px; color:var(--muted); max-width:260px; line-height:1.6; margin-bottom:20px; }
+
+/* ================================================================
+   PROFILE COMPLETION STEPS
+   ================================================================ */
+.profile-step {
+  display:flex; align-items:center; gap:12px; padding:10px 12px;
+  border-radius:10px; background:var(--cream); margin-bottom:8px;
+  cursor:pointer; transition:background 0.15s; border:1.5px solid transparent;
+}
+.profile-step:hover { background:var(--lightblue); border-color:var(--blue); }
+.profile-step.done { opacity:0.5; }
+.profile-step-pts { font-size:11px; font-weight:700; color:var(--blue); background:var(--lightblue); padding:2px 7px; border-radius:6px; flex-shrink:0; }
+
+/* ================================================================
+   IMPROVED MOBILE — comprehensive fixes for all screens
+   ================================================================ */
+
+/* Dark mode toggle button in sidebar */
+#dark-toggle {
+  width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+  cursor:pointer; border:none; background:transparent; color:rgba(255,255,255,0.5);
+  font-size:18px; transition:all 0.18s;
+}
+#dark-toggle:hover { background:rgba(255,255,255,0.12); color:rgba(255,255,255,0.9); }
+
+/* Dark toggle in bottom nav */
+/* (dark toggle handled by sidebar #dark-toggle and more drawer) */
+
+
+/* Input */
+.input {
+  width:100%; padding:10px 13px; border-radius:9px; border:1.5px solid var(--sand);
+  font-family:'Inter',sans-serif; font-size:13px; color:var(--text);
+  background:var(--white); outline:none; transition:border-color 0.18s;
+}
+.input:focus { border-color:var(--blue); }
+.input-group { display:flex; flex-direction:column; }
+.input-label { font-size:12px; font-weight:600; color:var(--muted); margin-bottom:5px; text-transform:uppercase; letter-spacing:0.4px; }
+textarea.input { resize:vertical; line-height:1.55; }
+select.input { cursor:pointer; }
+
+/* Modal */
+.modal-backdrop {
+  position:fixed; inset:0; background:rgba(0,26,61,0.55); backdrop-filter:blur(3px);
+  display:none; align-items:center; justify-content:center; padding:20px; z-index:500;
+}
+.modal-backdrop.open { display:flex; }
+.modal {
+  background:var(--white); border-radius:18px; padding:24px 22px;
+  width:100%; max-width:460px; max-height:90dvh; overflow-y:auto;
+  box-shadow:0 24px 80px rgba(0,0,0,0.3);
+}
+.modal-hdr { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
+.modal-title { font-size:17px; font-weight:700; color:var(--blue); }
+.modal-x { background:var(--sand); border:none; width:30px; height:30px; border-radius:8px; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+
+/* Overlay (post/item detail) */
+.overlay {
+  position:fixed; inset:0; background:rgba(0,26,61,0.55); backdrop-filter:blur(3px);
+  display:none; align-items:center; justify-content:center; padding:20px; z-index:400;
+}
+.overlay.open { display:flex; }
+.overlay-box {
+  background:var(--white); border-radius:18px; padding:22px;
+  width:100%; max-width:520px; max-height:92dvh; overflow-y:auto;
+  box-shadow:0 24px 80px rgba(0,0,0,0.3);
+}
+
+/* Toast */
+.toast-wrap { position:fixed; bottom:80px; left:50%; transform:translateX(-50%); z-index:900; display:flex; flex-direction:column; gap:6px; align-items:center; pointer-events:none; }
+.toast {
+  background:var(--blue); color:white; padding:10px 18px; border-radius:24px;
+  font-size:13px; font-weight:500; display:flex; align-items:center; gap:8px;
+  box-shadow:0 4px 20px rgba(45,106,39,0.35); opacity:1; transition:opacity 0.3s;
+  white-space:nowrap;
+}
+.toast.error { background:var(--red); }
+.toast.success { background:var(--success); }
+
+/* Announcement badge */
+.badge { display:inline-flex; align-items:center; justify-content:center; min-width:18px; height:18px; padding:0 5px; border-radius:9px; font-size:10px; font-weight:700; background:var(--danger); color:white; }
+
+/* Club card */
+.club-card { background:var(--white); border-radius:var(--radius); padding:14px; box-shadow:var(--shadow); cursor:pointer; transition:all 0.18s; }
+.club-card:hover { box-shadow:var(--shadow-lg); transform:translateY(-2px); }
+
+/* Notification panel */
+.notif-panel {
+  position:fixed; top:0; right:0; bottom:0; width:320px;
+  background:var(--white); box-shadow:-4px 0 30px rgba(45,106,39,0.18);
+  z-index:600; transform:translateX(100%); transition:transform 0.28s ease;
+  display:flex; flex-direction:column;
+}
+.notif-panel.open { transform:translateX(0); }
+.notif-overlay { position:fixed; inset:0; z-index:599; display:none; }
+.notif-overlay.open { display:block; }
+
+/* Anonymous mode toggle */
+.anon-badge { background:rgba(100,116,139,0.1); color:var(--muted); padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; border:1.5px dashed var(--sand); }
+.anon-badge.on { background:rgba(100,116,139,0.18); color:#334155; }
+
+/* Utilities */
+.flex { display:flex; } .flex-col { flex-direction:column; }
+.items-center { align-items:center; } .items-start { align-items:flex-start; }
+.justify-between { justify-content:space-between; } .justify-center { justify-content:center; }
+.flex-wrap { flex-wrap:wrap; } .flex-1 { flex:1; } .w-full { width:100%; }
+.text-sm { font-size:13px; } .text-xs { font-size:11px; }
+.text-muted { color:var(--muted); } .text-blue { color:var(--blue); }
+.text-white { color:white; } .text-gold { color:var(--red); }
+.text-right { text-align:right; } .text-center { text-align:center; }
+.font-bold { font-weight:700; } .font-semibold { font-weight:600; } .font-medium { font-weight:500; }
+.gap-4{gap:4px} .gap-6{gap:6px} .gap-8{gap:8px} .gap-10{gap:10px} .gap-12{gap:12px}
+.gap-14{gap:14px} .gap-16{gap:16px} .gap-20{gap:20px}
+.mt-4{margin-top:4px} .mt-6{margin-top:6px} .mt-8{margin-top:8px} .mt-10{margin-top:10px}
+.mt-12{margin-top:12px} .mt-14{margin-top:14px} .mt-16{margin-top:16px} .mt-20{margin-top:20px}
+.mt-24{margin-top:24px}
+.mb-4{margin-bottom:4px} .mb-6{margin-bottom:6px} .mb-8{margin-bottom:8px} .mb-10{margin-bottom:10px}
+.mb-12{margin-bottom:12px} .mb-14{margin-bottom:14px} .mb-16{margin-bottom:16px} .mb-20{margin-bottom:20px}
+.p-12{padding:12px} .p-16{padding:16px}
+.relative{position:relative} .hidden{display:none!important}
+.truncate { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+</style>
+</head>
+<body>
+
+<!-- Offline Banner -->
+<div id="offline-banner">⚠️ You're offline — limited features &nbsp;<button onclick="document.getElementById('offline-banner').classList.remove('show')" style="background:rgba(255,255,255,0.25);border:none;color:white;font-size:12px;font-weight:700;padding:2px 8px;border-radius:6px;cursor:pointer;margin-left:4px">✕</button></div>
+
+<!-- Global Search Overlay -->
+<div id="global-search-overlay" onclick="closeGlobalSearch(event)">
+  <div class="search-box">
+    <div class="search-input-row">
+      <span style="font-size:20px">🔍</span>
+      <input id="global-search-input" placeholder="Search students, posts, gigs, events, items..." oninput="runGlobalSearch(this.value)" autocomplete="off">
+      <button onclick="closeGlobalSearch()" style="background:var(--sand);border:none;width:28px;height:28px;border-radius:7px;cursor:pointer;font-size:13px">✕</button>
+    </div>
+    <div class="search-results" id="search-results">
+      <div style="padding:24px;text-align:center;color:var(--muted);font-size:13px">Start typing to search across MakChat...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     AUTH SCREEN
+     ================================================================ -->
+<div id="auth-screen" class="hidden">
+
+  <!-- Splash Branding -->
+  <div class="auth-splash" style="animation:fadeUp 0.3s ease">
+    <!-- Makerere Badge -->
+    <div style="width:86px;height:86px;margin:0 auto 12px;background:linear-gradient(135deg,#1a4016,#2D6A27);border-radius:50%;border:3px solid #FFD700;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,0.4)">
+      <span style="font-size:32px;font-weight:900;color:#FFD700;line-height:1;font-family:'Inter',sans-serif">M</span>
+      <span style="font-size:6.5px;color:rgba(255,215,0,0.75);font-weight:700;letter-spacing:1.5px;margin-top:1px">1922</span>
+    </div>
+    <div class="auth-splash-appname">MakChat</div>
+    <div class="auth-splash-uni">Makerere University · Est. 1922</div>
+    <div class="auth-splash-motto">"We build for the future"</div>
+    <div class="auth-stripe"></div>
+  </div>
+
+  <div class="auth-card" style="animation:fadeUp 0.4s ease">
+    <div class="auth-logo">
+      <div class="auth-crest" style="background:linear-gradient(135deg,#1a4016,#2D6A27)">
+        <span style="font-size:22px;font-weight:900;color:#FFD700;line-height:1">M</span>
+      </div>
+      <div>
+        <div style="font-size:18px;font-weight:900;color:var(--blue);letter-spacing:-0.3px">MakChat</div>
+        <div style="font-size:11px;color:var(--muted);font-weight:500">Makerere University Network</div>
+      </div>
+    </div>
+
+    <div class="auth-tab-row">
+      <button class="auth-tab active" id="tab-login-btn" onclick="authTab('login')">Log In</button>
+      <button class="auth-tab" id="tab-reg-btn" onclick="authTab('register')">Sign Up</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="login-form">
+      <div class="flex flex-col gap-12">
+        <div class="input-group">
+          <div class="input-label">Email</div>
+          <input class="input" id="l-email" type="email" placeholder="you@students.mak.ac.ug" autocomplete="email">
+        </div>
+        <div class="input-group">
+          <div class="input-label">Password</div>
+          <input class="input" id="l-pass" type="password" placeholder="Your password" autocomplete="current-password">
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full mt-20" onclick="doLogin()">Log In to MakChat</button>
+      <div class="text-center text-xs text-muted mt-12">
+        Demo: <strong>demo@mak.ac.ug</strong> / <strong>demo1234</strong>
+      </div>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="register-form" class="hidden">
+      <div class="flex flex-col gap-10">
+        <div class="grid-2" style="gap:10px">
+          <div class="input-group"><div class="input-label">Full Name</div><input class="input" id="r-name" placeholder="Nakato Amara"></div>
+          <div class="input-group"><div class="input-label">Username</div><input class="input" id="r-uname" placeholder="nakato_a"></div>
+        </div>
+        <div class="input-group"><div class="input-label">Email</div><input class="input" id="r-email" type="email" placeholder="s21/12345@students.mak.ac.ug"></div>
+        <div class="input-group"><div class="input-label">Password</div><input class="input" id="r-pass" type="password" placeholder="Min 6 characters"></div>
+        <div class="input-group"><div class="input-label">College / Faculty</div>
+          <select class="input" id="r-college">
+            <option value="">Select your college...</option>
+            <option>College of Computing & Information Sciences (COCIS)</option>
+            <option>College of Natural Sciences (CoNAS)</option>
+            <option>College of Agricultural & Environmental Sciences (CAES)</option>
+            <option>College of Business & Management Sciences (CoBAMS)</option>
+            <option>College of Engineering, Design, Art & Technology (CEDAT)</option>
+            <option>College of Health Sciences (CHS)</option>
+            <option>College of Humanities & Social Sciences (CHUSS)</option>
+            <option>School of Law (SoL)</option>
+            <option>School of Education (SoE)</option>
+            <option>Makerere University Business School (MUBS)</option>
+            <option>School of Public Health (MakSPH)</option>
+          </select>
+        </div>
+        <div class="grid-2" style="gap:10px">
+          <div class="input-group"><div class="input-label">Course / Programme</div><input class="input" id="r-course" placeholder="e.g. BSc. Computer Science"></div>
+          <div class="input-group"><div class="input-label">Year of Study</div>
+            <select class="input" id="r-year">
+              <option value="">Select...</option>
+              <option>Year 1</option><option>Year 2</option><option>Year 3</option>
+              <option>Year 4</option><option>Year 5+</option><option>Postgraduate</option>
+            </select>
+          </div>
+        </div>
+        <div class="input-group"><div class="input-label">WhatsApp / Phone (optional)</div><input class="input" id="r-phone" type="tel" placeholder="e.g. +256 700 123456"></div>
+      </div>
+      <button class="btn btn-gold btn-full mt-20" onclick="doRegister()">Join MakChat 🎓</button>
+    </div>
+  </div>
+
+  <!-- Sematech Developer Footer -->
+  <div class="sematech-footer" style="animation:fadeUp 0.5s ease">
+    POWERED BY <strong>SEMATECH DEVELOPERS</strong>
+  </div>
+</div>
+
+<!-- CONFIRM DIALOG -->
+<div class="confirm-backdrop" id="confirm-backdrop">
+  <div class="confirm-box">
+    <div class="confirm-icon" id="confirm-icon">⚠️</div>
+    <div class="confirm-title" id="confirm-title">Are you sure?</div>
+    <div class="confirm-msg" id="confirm-msg">This action cannot be undone.</div>
+    <div class="flex gap-10 justify-center">
+      <button class="btn btn-ghost" onclick="confirmResolve(false)">Cancel</button>
+      <button class="btn btn-danger" id="confirm-ok-btn" onclick="confirmResolve(true)">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     APP SHELL
+     ================================================================ -->
+<div id="shell">
+
+  <!-- SIDEBAR (desktop) -->
+  <div class="sidebar">
+    <div class="sb-logo" onclick="goTab('home')">MAK<br>CHAT</div>
+  <div id="sb-status-dot" style="width:8px;height:8px;border-radius:50%;background:#94a3b8;margin:0 auto 4px;transition:background 0.3s" title="Database status"></div>
+    <button class="sb-btn" data-tab="home"          onclick="goTab('home')"           title="Home">🏠</button>
+    <button class="sb-btn" data-tab="feed"          onclick="goTab('feed')"           title="Campus Pulse">📣</button>
+    <button class="sb-btn" data-tab="chat"          onclick="goTab('chat')"           title="Messages">💬<div class="sb-dot" id="chat-dot" style="display:none"></div></button>
+    <button class="sb-btn" data-tab="people"        onclick="goTab('people')"         title="Find People">👥</button>
+    <button class="sb-btn" data-tab="channels"      onclick="goTab('channels')"       title="Channels">📡</button>
+    <button class="sb-btn" data-tab="groups"        onclick="goTab('groups')"         title="Groups">🏘️</button>
+    <button class="sb-btn" data-tab="marketplace"   onclick="goTab('marketplace')"    title="Marketplace">🛒</button>
+    <button class="sb-btn" data-tab="hostel"        onclick="goTab('hostel')"         title="Hostel Hub">🏠</button>
+    <button class="sb-btn" data-tab="gigs"          onclick="goTab('gigs')"           title="Skills & Gigs">⚡</button>
+    <button class="sb-btn" data-tab="events"        onclick="goTab('events')"         title="Events">📅</button>
+    <button class="sb-btn" data-tab="opportunities" onclick="goTab('opportunities')"  title="Opportunities">✨<div class="sb-dot"></div></button>
+    <button class="sb-btn" data-tab="announcements" onclick="goTab('announcements')"  title="Announcements">📢<div class="sb-dot" id="ann-dot"></div></button>
+    <button class="sb-btn" data-tab="lostfound"     onclick="goTab('lostfound')"      title="Lost & Found">🔍</button>
+    <div class="sb-spacer"></div>
+    <button class="sb-btn" title="Search" onclick="openGlobalSearch()">🔎</button>
+    <button id="dark-toggle" title="Toggle Dark Mode" onclick="toggleDarkMode()">🌙</button>
+    <button class="sb-btn" title="Notifications" onclick="toggleNotifPanel()">🔔<div class="sb-dot" id="notif-dot"></div></button>
+    <button class="sb-btn" data-tab="profile"       onclick="goTab('profile')"        title="My Profile">◈</button>
+    <div class="sb-avatar" id="sb-av" onclick="goTab('profile')" style="overflow:hidden;padding:0;position:relative">
+      <img id="sb-av-img" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:none;border-radius:inherit">
+      <span id="sb-av-letter" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">M</span>
+    </div>
+  </div>
+
+  <!-- MOBILE BOTTOM NAV — 5 main tabs + More -->
+  <nav class="bottom-nav">
+    <div class="bottom-nav-inner">
+      <button class="bn-btn" data-tab="home"        onclick="goTab('home')">        <span class="bn-icon">🏠</span>Home</button>
+      <button class="bn-btn" data-tab="feed"        onclick="goTab('feed')">        <span class="bn-icon">📣</span>Feed</button>
+      <button class="bn-btn" data-tab="chat"        onclick="goTab('chat')">        <span class="bn-icon">💬</span>Chat<div class="bn-dot" id="chat-bn-dot" style="display:none"></div></button>
+      <button class="bn-btn" data-tab="profile"     onclick="goTab('profile')">     <span class="bn-icon">◈</span>Profile</button>
+      <button class="bn-btn" id="bn-more-btn"       onclick="toggleMoreDrawer()">   <span class="bn-icon">⋯</span>More</button>
+    </div>
+  </nav>
+
+  <!-- MORE DRAWER (slides up from left on mobile) -->
+  <div id="more-drawer-overlay" onclick="closeMoreDrawer()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:350;backdrop-filter:blur(2px)"></div>
+  <div id="more-drawer" style="display:none;position:fixed;bottom:0;left:0;width:72%;max-width:300px;top:0;background:var(--white);z-index:360;flex-direction:column;box-shadow:4px 0 30px rgba(0,0,0,0.2);overflow-y:auto;">
+    <div style="background:linear-gradient(135deg,#1a4016,#2D6A27);padding:28px 20px 20px;flex-shrink:0">
+      <div style="font-size:22px;font-weight:900;color:var(--gold);letter-spacing:-0.5px">MakChat</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:3px">Makerere University Network</div>
+    </div>
+    <div style="padding:12px 8px;flex:1">
+      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;padding:8px 12px 4px">Navigation</div>
+      <button class="more-item" data-tab="people"        onclick="closeMoreDrawer();goTab('people')">        <span>👥</span> Find People</button>
+      <button class="more-item" data-tab="channels"      onclick="closeMoreDrawer();goTab('channels')">      <span>📡</span> Channels</button>
+      <button class="more-item" data-tab="groups"        onclick="closeMoreDrawer();goTab('groups')">        <span>🏘️</span> Groups</button>
+      <button class="more-item" data-tab="marketplace"   onclick="closeMoreDrawer();goTab('marketplace')">   <span>🛒</span> Marketplace</button>
+      <button class="more-item" data-tab="hostel"        onclick="closeMoreDrawer();goTab('hostel')">        <span>🏠</span> Hostel Hub</button>
+      <button class="more-item" data-tab="gigs"          onclick="closeMoreDrawer();goTab('gigs')">          <span>⚡</span> Skills & Gigs</button>
+      <button class="more-item" data-tab="events"        onclick="closeMoreDrawer();goTab('events')">        <span>📅</span> Events</button>
+      <button class="more-item" data-tab="opportunities" onclick="closeMoreDrawer();goTab('opportunities')"> <span>✨</span> Opportunities</button>
+      <button class="more-item" data-tab="announcements" onclick="closeMoreDrawer();goTab('announcements')"> <span>📢</span> Announcements</button>
+      <button class="more-item" data-tab="lostfound"     onclick="closeMoreDrawer();goTab('lostfound')">     <span>🔍</span> Lost &amp; Found</button>
+      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;padding:12px 12px 4px">Tools</div>
+      <button class="more-item" onclick="closeMoreDrawer();openGlobalSearch()">     <span>🔎</span> Search</button>
+      <button class="more-item" onclick="closeMoreDrawer();toggleNotifPanel()">     <span>🔔</span> Notifications</button>
+      <button class="more-item" onclick="toggleDarkMode()">                         <span id="more-dark-icon">🌙</span> <span id="more-dark-label">Dark Mode</span></button>
+    </div>
+    <div style="padding:12px 8px 28px;border-top:1px solid var(--sand)">
+      <div style="font-size:9px;text-align:center;color:var(--muted)">Crafted by <strong>SEMATECH DEVELOPERS</strong></div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="content" id="content">
+
+      <!-- ═══════════════ HOME ═══════════════ -->
+      <div id="tab-home" class="screen">
+        <div class="page-header">
+          <div>
+            <div class="page-title" id="home-greeting">Welcome back 👋</div>
+            <div class="page-sub" id="home-sub">Makerere University</div>
+          </div>
+          <div class="flex gap-8">
+            <button class="btn btn-ghost btn-sm" onclick="openGlobalSearch()">🔎 Search</button>
+            <button class="btn btn-ghost btn-sm" onclick="goTab('announcements')">📢 <span class="badge" id="ann-badge-home">2</span></button>
+            <button class="btn btn-gold" onclick="openModal('compose-modal')">+ Post</button>
+          </div>
+        </div>
+
+        <!-- Makerere banner -->
+        <div class="card mb-20" style="padding:18px 20px;background:linear-gradient(135deg,#1a4016 0%,#2D6A27 60%,#3a1010 100%);position:relative;overflow:hidden;border-left:4px solid var(--gold)">
+          <div style="position:absolute;right:-10px;top:-10px;font-size:90px;opacity:0.06">🎓</div>
+          <div style="position:absolute;right:60px;bottom:-20px;font-size:70px;opacity:0.04">🇺🇬</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.55);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Makerere University · Est. 1922</div>
+          <div style="font-size:18px;font-weight:800;color:var(--gold);margin-bottom:4px">"We build for the future"</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.65)">Uganda's leading university · Hill of Excellence · Kampala</div>
+          <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
+            <span style="background:rgba(255,215,0,0.15);color:var(--gold);font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;border:1px solid rgba(255,215,0,0.3)">🟢 Green</span>
+            <span style="background:rgba(139,0,0,0.25);color:#ff8080;font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;border:1px solid rgba(139,0,0,0.4)">🔴 Red</span>
+          </div>
+        </div>
+
+        <div class="grid-4 mb-20" id="home-stats">
+          <div class="stat-card"><div class="stat-label">Connections</div><div class="stat-value" id="stat-connections">0</div><div class="stat-delta">↑ Grow network</div></div>
+          <div class="stat-card"><div class="stat-label">Posts</div><div class="stat-value" id="stat-posts">0</div><div class="stat-delta">Keep sharing</div></div>
+          <div class="stat-card"><div class="stat-label">Groups</div><div class="stat-value" id="stat-groups">0</div><div class="stat-delta">Joined groups</div></div>
+          <div class="stat-card"><div class="stat-label">Events RSVP'd</div><div class="stat-value" id="stat-events">0</div><div class="stat-delta">🎉 Stay active</div></div>
+        </div>
+
+        <div class="home-layout">
+          <div class="home-main-col">
+            <div class="section-title">Recent from Campus</div>
+            <div class="flex flex-col gap-10" id="home-feed"></div>
+            <button class="btn btn-ghost btn-full mt-12" onclick="goTab('feed')" style="font-size:12px">See All Posts →</button>
+          </div>
+          <div class="home-side-col">
+            <div class="section-title">Latest Announcement</div>
+            <div id="home-ann" class="mb-16"></div>
+            <div class="section-title">Active Now</div>
+            <div id="home-active" class="flex flex-col gap-8"></div>
+            <div class="section-title mt-16">Upcoming Events</div>
+            <div id="home-events" class="flex flex-col gap-8"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════ FEED ═══════════════ -->
+      <div id="tab-feed" class="screen">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Campus Pulse 📣</div>
+            <div class="page-sub">What's happening across Makerere</div>
+          </div>
+          <button class="btn btn-gold" onclick="openModal('compose-modal')">+ Post</button>
+        </div>
+        <div class="flex gap-8 mb-16 filter-scroll" id="feed-filters">
+          <button class="btn btn-sm btn-primary" onclick="filterFeed('all',this)">All</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterFeed('my-college',this)">My College</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterFeed('study',this)">📚 Study</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterFeed('event',this)">📅 Events</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterFeed('marketplace',this)">🛒 Market</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterFeed('support',this)">💙 Support</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterFeed('anon',this)">👤 Anonymous</button>
+        </div>
+        <div class="flex flex-col gap-12" id="feed-list"></div>
+      </div>
+
+      <!-- ═══════════════ CHAT ═══════════════ -->
+      <div id="tab-chat" class="screen">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Messages 💬</div>
+            <div class="page-sub">Direct & group conversations</div>
+          </div>
+          <button class="btn btn-gold" onclick="openModal('new-chat-modal')">+ New Chat</button>
+        </div>
+        <div class="chat-layout">
+          <div class="chat-list-panel" id="chat-list-panel"></div>
+          <div class="chat-convo-panel" id="chat-convo-panel">
+            <div id="chat-empty" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--muted);padding:20px;text-align:center">
+              <div style="font-size:56px;margin-bottom:14px">💬</div>
+              <div style="font-size:16px;font-weight:700;color:var(--blue);margin-bottom:6px">Your messages</div>
+              <div style="font-size:13px;margin-bottom:18px;max-width:200px;line-height:1.55">Select a conversation or start a new one to begin chatting.</div>
+              <button class="btn btn-primary" onclick="openModal('new-chat-modal')">Start a conversation</button>
+            </div>
+            <div id="chat-active" style="display:none;flex-direction:column;height:100%">
+              <div id="chat-header" style="padding:12px 14px;border-bottom:1px solid var(--sand);display:flex;align-items:center;gap:10px;flex-shrink:0">
+                <button id="chat-back-btn" onclick="chatGoBack()" style="display:none;background:none;border:none;font-size:20px;cursor:pointer;color:var(--blue);padding:0 4px 0 0;flex-shrink:0">←</button>
+                <div class="avatar-wrapper">
+                  <div class="avatar av-md" id="chat-hdr-av" style="background:var(--blue)"><span style="color:white;font-weight:700;font-size:13px" id="chat-hdr-init">?</span></div>
+                  <div class="online-dot"></div>
+                </div>
+                <div style="flex:1"><div style="font-size:14px;font-weight:700" id="chat-hdr-name">—</div><div style="font-size:11px;color:var(--muted)" id="chat-hdr-sub">—</div></div>
+                <button class="btn btn-sm btn-ghost" id="chat-wa-btn" onclick="chatWhatsApp()" title="WhatsApp">📲</button>
+                <button class="btn btn-sm btn-ghost" onclick="confirmClearChat()" title="Clear chat" style="color:var(--muted)">🗑</button>
+              </div>
+              <div class="chat-messages" id="chat-messages"></div>
+              <div class="chat-input-row">
+                <label class="attach-btn" title="Attach file or image">📎<input type="file" id="dm-file-input" accept="image/*,.pdf,.doc,.docx,.txt,.pptx,.xlsx" style="display:none" onchange="handleChatFile(this,'dm')"></label>
+                <input class="input flex-1" id="chat-input" placeholder="Type a message..." style="font-size:13px" onkeydown="if(event.key==='Enter')sendChatMsg()">
+                <button class="btn btn-primary btn-sm" onclick="sendChatMsg()">Send</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════ PEOPLE ═══════════════ -->
+      <div id="tab-people" class="screen">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Find Your People 👥</div>
+            <div class="page-sub">Connect with students across faculties</div>
+          </div>
+          <input class="input" id="people-search" placeholder="🔍 Search students..." style="width:100%;max-width:220px;font-size:13px" oninput="filterPeople(this.value)">
+        </div>
+        <div class="flex gap-8 mb-16 filter-scroll" id="people-filters">
+          <button class="btn btn-sm btn-primary" onclick="setPeopleFilter('all',this)">All Students</button>
+          <button class="btn btn-sm btn-ghost" onclick="setPeopleFilter('my-college',this)">My College</button>
+          <button class="btn btn-sm btn-ghost" onclick="setPeopleFilter('connected',this)">Connected</button>
+          <button class="btn btn-sm btn-ghost" onclick="setPeopleFilter('mentors',this)">Mentors</button>
+        </div>
+        <div class="people-grid grid-3" id="people-grid"></div>
+      </div>
+
+      <!-- ═══════════════ GROUPS ═══════════════ -->
+      <div id="tab-groups" class="screen">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Groups 🏘️</div>
+            <div class="page-sub">Study groups, clubs & interest communities</div>
+          </div>
+          <button class="btn btn-gold" onclick="openModal('create-group-modal')">+ Create</button>
+        </div>
+
+        <!-- Study session banner -->
+        <div id="session-banner" class="card mb-16 hidden" style="background:linear-gradient(135deg,var(--blue),var(--blue3));padding:14px 18px">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-12">
+              <div class="live-dot"></div>
+              <div>
+                <div style="font-size:16px;font-weight:800;color:white">Study Session Active</div>
+                <div id="session-group-name" style="font-size:12px;opacity:0.7;color:white;margin-top:2px">—</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-12">
+              <div id="session-timer" style="font-size:24px;font-weight:900;color:var(--gold)">00:00</div>
+              <button class="btn btn-sm" style="background:rgba(255,255,255,0.18);color:white" onclick="endSession()">End</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-title">Your Groups</div>
+        <div class="flex flex-col gap-12 mb-20" id="my-groups"></div>
+        <div class="section-title">Discover Groups</div>
+        <div class="grid-2" id="discover-groups"></div>
+      </div>
+
+      <!-- ═══════════════ MARKETPLACE ═══════════════ -->
+      <div id="tab-marketplace" class="screen">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Marketplace 🛒</div>
+            <div class="page-sub">Buy, sell & exchange with fellow students</div>
+          </div>
+          <button class="btn btn-gold" onclick="openModal('list-modal')">+ List Item</button>
+        </div>
+        <div class="flex gap-8 mb-16 filter-scroll" id="mkt-filters">
+          <button class="btn btn-sm btn-primary" onclick="filterMarket('all',this)">All</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterMarket('textbooks',this)">📚 Textbooks</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterMarket('notes',this)">📝 Notes</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterMarket('past-papers',this)">📄 Past Papers</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterMarket('tutoring',this)">🎓 Tutoring</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterMarket('equipment',this)">🛠 Equipment</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterMarket('exchange',this)">🔄 Exchange</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterMarket('free',this)">🆓 Free</button>
+        </div>
+        <div class="grid-2" id="market-grid"></div>
+      </div>
+
+      <!-- ═══════════════ HOSTEL HUB ═══════════════ -->
+      <div id="tab-hostel" class="screen">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Hostel Hub 🏠</div>
+            <div class="page-sub">Rooms, reviews, roommates & housing tips</div>
+          </div>
+          <button class="btn btn-gold" onclick="openModal('hostel-modal')">+ Post Room</button>
+        </div>
+        <div class="flex gap-8 mb-16 filter-scroll" id="hostel-filters">
+          <button class="btn btn-sm btn-primary" onclick="filterHostel('all',this)">All</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterHostel('campus',this)">🏛 On-Campus</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterHostel('offcampus',this)">🏘 Off-Campus</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterHostel('roommate',this)">🤝 Roommate Needed</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterHostel('review',this)">⭐ Reviews</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterHostel('warning',this)">⚠️ Warnings</button>
+        </div>
+        <div class="grid-2" id="hostel-grid"></div>
+      </div>
+
+      <!-- ═══════════════ SKILLS & GIGS ═══════════════ -->
+      <div id="tab-gigs" class="screen">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Skills & Gigs ⚡</div>
+            <div class="page-sub">Hire skilled students · Offer your services</div>
+          </div>
+          <button class="btn btn-gold" onclick="openModal('gig-modal')">+ Offer Service</button>
+        </div>
+        <div class="card card-blue mb-16" style="padding:14px 16px">
+          <div class="flex gap-12 items-center">
+            <span style="font-size:26px">💡</span>
+            <div>
+              <div style="font-weight:700;color:white;font-size:14px">Student-to-Student Economy</div>
+              <div style="font-size:12px;color:rgba(255,255,255,0.72);margin-top:3px">Graphic design, coding, tutoring, photography & more — all from fellow Makerere students</div>
+            </div>
+          </div>
+        </div>
+        <div class="flex gap-8 mb-16 filter-scroll" id="gigs-filters">
+          <button class="btn btn-sm btn-primary" onclick="filterGigs('all',this)">All</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterGigs('tutoring',this)">📖 Tutoring</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterGigs('design',this)">🎨 Design</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterGigs('tech',this)">💻 Tech</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterGigs('writing',this)">✍️ Writing</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterGigs('photo',this)">📸 Photo/Video</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterGigs('other',this)">🔧 Other</button>
+        </div>
+        <div class="grid-2" id="gigs-grid"></div>
+      </div>
+
+      <!-- ═══════════════ EVENTS ═══════════════ -->
+      <div id="tab-events" class="screen">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Events 📅</div>
+            <div class="page-sub">Hackathons, seminars, social & more</div>
+          </div>
+          <button class="btn btn-gold" onclick="openModal('event-modal')">+ Add Event</button>
+        </div>
+        <div class="flex gap-8 mb-16 filter-scroll" id="event-filters">
+          <button class="btn btn-sm btn-primary" onclick="filterEvents('all',this)">All</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterEvents('academic',this)">📚 Academic</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterEvents('social',this)">🎉 Social</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterEvents('tech',this)">💻 Tech</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterEvents('sports',this)">⚽ Sports</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterEvents('career',this)">💼 Career</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterEvents('cultural',this)">🎭 Cultural</button>
+        </div>
+        <div class="flex flex-col gap-12" id="events-list"></div>
+      </div>
+
+      <!-- ═══════════════ OPPORTUNITIES ═══════════════ -->
+      <div id="tab-opportunities" class="screen">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Opportunities ✨</div>
+            <div class="page-sub">Scholarships, internships, fellowships & more</div>
+          </div>
+          <span class="pill pill-gold" style="padding:6px 12px;font-size:12px">Smart matched</span>
+        </div>
+        <div class="card card-gold mb-16">
+          <div class="flex items-start gap-12">
+            <span style="font-size:24px">⚡</span>
+            <div>
+              <div style="font-weight:700;font-size:14px;color:var(--blue)">Your Makerere profile is eligible for multiple opportunities</div>
+              <div class="text-sm mt-6" style="opacity:0.85;color:var(--text)">Complete your skills and portfolio to unlock more matches. Adding a research project can boost your scholarship match rate significantly.</div>
+            </div>
+          </div>
+        </div>
+        <div class="flex gap-8 mb-16 filter-scroll" id="opp-filters">
+          <button class="btn btn-sm btn-primary" onclick="filterOpps('all',this)">All</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterOpps('scholarship',this)">🎓 Scholarship</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterOpps('internship',this)">💼 Internship</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterOpps('grant',this)">💰 Grant</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterOpps('fellowship',this)">🌍 Fellowship</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterOpps('competition',this)">🏆 Competition</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterOpps('job',this)">🏢 Job</button>
+        </div>
+        <div class="flex flex-col gap-12" id="opps-list"></div>
+      </div>
+
+      <!-- ═══════════════ ANNOUNCEMENTS ═══════════════ -->
+      <div id="tab-announcements" class="screen">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Announcements 📢</div>
+            <div class="page-sub">Official notices from Makerere University</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" id="post-ann-btn" onclick="openModal('ann-modal')" style="display:none">+ Post</button>
+        </div>
+        <div class="flex gap-8 mb-16 filter-scroll" id="ann-filters">
+          <button class="btn btn-sm btn-primary" onclick="filterAnn('all',this)">All</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterAnn('urgent',this)">🔴 Urgent</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterAnn('academic',this)">📚 Academic</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterAnn('administrative',this)">🏛 Admin</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterAnn('guild',this)">👑 Guild</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterAnn('my-college',this)">🏢 My College</button>
+        </div>
+        <div id="announcements-list"></div>
+      </div>
+
+      <!-- ═══════════════ LOST & FOUND ═══════════════ -->
+      <div id="tab-lostfound" class="screen">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Lost & Found 🔍</div>
+            <div class="page-sub">Help reunite students with their belongings</div>
+          </div>
+          <button class="btn btn-gold" onclick="openModal('lf-modal')">+ Report Item</button>
+        </div>
+        <div class="flex gap-8 mb-16 filter-scroll" id="lf-filters">
+          <button class="btn btn-sm btn-primary" onclick="filterLF('all',this)">All</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterLF('lost',this)">❌ Lost</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterLF('found',this)">✅ Found</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterLF('claimed',this)">🎉 Claimed</button>
+        </div>
+        <div class="grid-2" id="lf-grid"></div>
+      </div>
+
+      <!-- ═══════════════ CHANNELS ═══════════════ -->
+      <div id="tab-channels" class="screen">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Channels 📡</div>
+            <div class="page-sub">Course units, departments & interest channels</div>
+          </div>
+          <button class="btn btn-gold" onclick="openModal('create-channel-modal')">+ New Channel</button>
+        </div>
+        <div class="channel-layout">
+          <div class="channel-list-panel" id="channel-list-panel"></div>
+          <div class="channel-convo-panel" id="channel-convo-panel">
+            <div id="channel-empty" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--muted)">
+              <div style="font-size:48px;margin-bottom:12px">📡</div>
+              <div style="font-size:14px;font-weight:600">Select a Channel</div>
+              <div style="font-size:12px;margin-top:4px">Or create a new one for your course</div>
+            </div>
+            <div id="channel-active" style="display:none;flex-direction:column;height:100%">
+              <div id="channel-header" style="padding:12px 14px;border-bottom:1px solid var(--sand);display:flex;align-items:center;gap:10px;flex-shrink:0">
+                <div class="channel-hash" id="ch-hdr-hash">#</div>
+                <div>
+                  <div style="font-size:14px;font-weight:700" id="ch-hdr-name">—</div>
+                  <div style="font-size:11px;color:var(--muted)" id="ch-hdr-sub">—</div>
+                </div>
+              </div>
+              <div class="chat-messages" id="channel-messages"></div>
+              <div class="chat-input-row">
+                <label class="attach-btn" title="Attach file or image">📎<input type="file" id="ch-file-input" accept="image/*,.pdf,.doc,.docx,.txt,.pptx,.xlsx" style="display:none" onchange="handleChatFile(this,'channel')"></label>
+                <input class="input flex-1" id="channel-input" placeholder="Message the channel..." style="font-size:13px" onkeydown="if(event.key==='Enter')sendChannelMsg()">
+                <button class="btn btn-primary btn-sm" onclick="sendChannelMsg()">Send</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════ PROFILE ═══════════════ -->
+      <div id="tab-profile" class="screen">
+        <div class="page-header">
+          <div>
+            <div class="page-title">My Profile</div>
+            <div class="page-sub">Your Makerere story</div>
+          </div>
+          <div class="flex gap-8">
+            <button class="btn btn-ghost btn-sm" onclick="openModal('edit-profile-modal')">✏️ Edit</button>
+            <button class="btn btn-ghost btn-sm" onclick="confirmLogout()">Log Out</button>
+          </div>
+        </div>
+
+        <!-- Profile hero -->
+        <div class="card card-blue mb-16" style="background:linear-gradient(135deg,var(--blue) 0%,var(--blue3) 100%)">
+          <div class="flex items-center gap-16 mb-14">
+            <div style="position:relative;flex-shrink:0">
+              <div class="avatar av-2xl" id="pf-av" style="background:var(--gold);overflow:hidden;cursor:pointer" title="Tap to change photo" onclick="document.getElementById('pf-photo-input').click()">
+                <img id="pf-av-img" src="" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:none">
+                <span id="pf-av-letter" style="color:var(--blue);font-weight:900;font-size:24px">M</span>
+              </div>
+              <label style="position:absolute;bottom:-4px;right:-4px;width:26px;height:26px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,0.3);border:2px solid white" title="Upload profile photo">
+                📷<input type="file" id="pf-photo-input" accept="image/*" style="display:none" onchange="handleProfilePhoto(this)">
+              </label>
+            </div>
+            <div class="flex-1">
+              <div style="font-size:20px;font-weight:800;color:white" id="pf-name">—</div>
+              <div style="opacity:0.75;font-size:13px;margin-top:4px;color:white" id="pf-detail">—</div>
+              <div style="opacity:0.6;font-size:12px;margin-top:3px;color:white" id="pf-college">—</div>
+              <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap" id="pf-badges"></div>
+            </div>
+
+          </div>
+          <div id="pf-bio" style="background:rgba(255,255,255,0.08);border-radius:9px;padding:10px 12px;font-size:13px;color:rgba(255,255,255,0.85);margin-bottom:14px">No bio yet.</div>
+          <div style="font-size:11px;opacity:0.55;color:white;margin-bottom:6px">Profile completeness</div>
+          <div class="progress-bar" style="background:rgba(255,255,255,0.15)">
+            <div id="pf-progress" style="height:100%;border-radius:3px;background:var(--gold);width:20%;transition:width 0.8s"></div>
+          </div>
+          <div id="pf-progress-label" style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:5px;text-align:right">20% complete</div>
+        </div>
+
+        <!-- Profile Completion Steps -->
+        <div id="pf-completion-steps" class="card mb-16">
+          <div style="font-size:13px;font-weight:700;color:var(--blue);margin-bottom:12px">⚡ Complete your profile to unlock more matches</div>
+          <div id="completion-steps-list"></div>
+        </div>
+
+        <!-- Tabs inside profile -->
+        <div style="display:flex;gap:8px;margin-bottom:18px;border-bottom:2px solid var(--sand);padding-bottom:0">
+          <button class="btn btn-ghost btn-sm" id="pf-tab-achievements" onclick="pfTab('achievements')" style="border-bottom:2px solid var(--blue);border-radius:6px 6px 0 0;color:var(--blue)">Achievements</button>
+          <button class="btn btn-ghost btn-sm" id="pf-tab-skills" onclick="pfTab('skills')" style="border-radius:6px 6px 0 0">Skills</button>
+          <button class="btn btn-ghost btn-sm" id="pf-tab-mentorship" onclick="pfTab('mentorship')" style="border-radius:6px 6px 0 0">Mentorship</button>
+        </div>
+
+        <div id="pf-section-achievements">
+          <div class="flex justify-between items-center mb-12">
+            <div class="section-title" style="margin:0">Achievements & Portfolio</div>
+            <button class="btn btn-sm btn-gold" onclick="openModal('add-port-modal')">+ Add</button>
+          </div>
+          <div class="flex flex-col gap-10 mb-20" id="port-items"></div>
+        </div>
+
+        <div id="pf-section-skills" style="display:none">
+          <div class="flex justify-between items-center mb-12">
+            <div class="section-title" style="margin:0">Skills</div>
+            <button class="btn btn-sm btn-gold" onclick="showAddSkill()">+ Add Skill</button>
+          </div>
+          <div class="card" id="skills-card"></div>
+          <div class="flex gap-8 mt-12 hidden" id="add-skill-form">
+            <input class="input flex-1" id="new-skill-name" placeholder="e.g. Python, Design, Research">
+            <input class="input" id="new-skill-level" type="number" min="1" max="100" placeholder="%" style="width:70px">
+            <button class="btn btn-primary" onclick="saveSkill()">Add</button>
+          </div>
+        </div>
+
+        <div id="pf-section-mentorship" style="display:none">
+          <div class="section-title">Mentorship</div>
+          <div class="card mb-12">
+            <div style="font-size:14px;font-weight:600;margin-bottom:8px">Offer Mentorship</div>
+            <div class="text-sm text-muted mb-12">Help junior students in your field. Toggle your availability as a mentor.</div>
+            <div class="flex items-center gap-12">
+              <button class="btn btn-sm" id="mentor-toggle-btn" onclick="toggleMentor()" style="background:var(--sand);color:var(--muted)">Become a Mentor</button>
+              <span id="mentor-status" class="text-xs text-muted">Not active</span>
+            </div>
+          </div>
+          <div class="section-title mt-16">My Mentors</div>
+          <div id="my-mentors" class="flex flex-col gap-10"></div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+
+    <!-- RIGHT PANEL (desktop) — Phase 3: shows on all tabs -->
+    <div class="right-panel" id="right-panel">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid var(--sand)">
+        <div style="width:32px;height:32px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;border:1px solid var(--gold)">🎓</div>
+        <div>
+          <div style="font-size:13px;font-weight:800;color:var(--blue)">Makerere University</div>
+          <div style="font-size:10px;color:var(--red);font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Hill of Excellence</div>
+        </div>
+      </div>
+      <div class="section-title">Quick Actions</div>
+      <div class="flex flex-col gap-6 mb-16">
+        <button class="btn btn-ghost w-full" style="justify-content:flex-start;font-size:12px" onclick="openModal('compose-modal')">📣 New Post</button>
+        <button class="btn btn-ghost w-full" style="justify-content:flex-start;font-size:12px" onclick="goTab('groups')">📚 Start Study Session</button>
+        <button class="btn btn-ghost w-full" style="justify-content:flex-start;font-size:12px" onclick="goTab('opportunities')">✨ Browse Opportunities</button>
+        <button class="btn btn-ghost w-full" style="justify-content:flex-start;font-size:12px" onclick="goTab('hostel')">🏠 Find a Room</button>
+        <button class="btn btn-ghost w-full" style="justify-content:flex-start;font-size:12px" onclick="goTab('lostfound')">🔍 Lost & Found</button>
+      </div>
+      <div class="divider"></div>
+      <div class="section-title">Urgent Deadlines</div>
+      <div class="flex flex-col gap-8 mb-16" id="rp-deadlines"></div>
+      <div class="divider"></div>
+      <div class="section-title">Active Students</div>
+      <div class="flex flex-col gap-8 mb-16" id="rp-studying"></div>
+      <div class="divider"></div>
+      <div class="section-title">Campus Weather</div>
+      <div style="background:var(--lightblue);border-radius:10px;padding:12px;font-size:13px;border-left:3px solid var(--blue)">
+        <div style="font-weight:700;color:var(--blue)">Kampala, Uganda 🌤</div>
+        <div style="color:var(--muted);margin-top:4px;font-size:12px">Makerere Hill · Partly Cloudy · ~24°C</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /shell -->
+
+<!-- MOBILE RIGHT PANEL DRAWER (Phase 3 — mobile) -->
+<div id="mobile-rp-overlay" onclick="closeMobileRP()"></div>
+<div id="mobile-rp-drawer">
+  <div style="width:34px;height:4px;background:var(--sand);border-radius:2px;margin:12px auto 16px"></div>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid var(--sand)">
+    <div style="width:32px;height:32px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;border:1px solid #FFD700">
+      <span style="font-size:14px;font-weight:900;color:#FFD700">M</span>
+    </div>
+    <div>
+      <div style="font-size:13px;font-weight:800;color:var(--blue)">Makerere University</div>
+      <div style="font-size:10px;color:var(--red);font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Hill of Excellence</div>
+    </div>
+  </div>
+  <div class="section-title">Quick Actions</div>
+  <div class="flex flex-col gap-6 mb-16">
+    <button class="btn btn-ghost w-full" style="justify-content:flex-start;font-size:13px" onclick="openModal('compose-modal');closeMobileRP()">📣 New Post</button>
+    <button class="btn btn-ghost w-full" style="justify-content:flex-start;font-size:13px" onclick="goTab('groups');closeMobileRP()">📚 Start Study Session</button>
+    <button class="btn btn-ghost w-full" style="justify-content:flex-start;font-size:13px" onclick="goTab('opportunities');closeMobileRP()">✨ Browse Opportunities</button>
+    <button class="btn btn-ghost w-full" style="justify-content:flex-start;font-size:13px" onclick="goTab('hostel');closeMobileRP()">🏠 Find a Room</button>
+    <button class="btn btn-ghost w-full" style="justify-content:flex-start;font-size:13px" onclick="goTab('lostfound');closeMobileRP()">🔍 Lost & Found</button>
+  </div>
+  <div class="divider"></div>
+  <div class="section-title">Urgent Deadlines</div>
+  <div class="flex flex-col gap-8 mb-16" id="mob-rp-deadlines"></div>
+  <div class="divider"></div>
+  <div class="section-title">Active Students</div>
+  <div class="flex flex-col gap-8 mb-16" id="mob-rp-studying"></div>
+  <div class="divider"></div>
+  <div class="section-title">Campus Weather</div>
+  <div style="background:var(--lightblue);border-radius:10px;padding:12px;font-size:13px;border-left:3px solid var(--blue);margin-bottom:8px">
+    <div style="font-weight:700;color:var(--blue)">Kampala, Uganda 🌤</div>
+    <div style="color:var(--muted);margin-top:4px;font-size:12px">Makerere Hill · Partly Cloudy · ~24°C</div>
+  </div>
+</div>
+<button id="mobile-rp-btn" onclick="openMobileRP()" title="Quick Actions">⚡</button>
+
+<!-- ================================================================
+     NOTIFICATION PANEL
+     ================================================================ -->
+<div class="notif-overlay" id="notif-overlay" onclick="toggleNotifPanel()"></div>
+<div class="notif-panel" id="notif-panel">
+  <div style="padding:16px;border-bottom:1px solid var(--sand);display:flex;justify-content:space-between;align-items:center">
+    <div style="font-size:16px;font-weight:700;color:var(--blue)">🔔 Notifications</div>
+    <button class="modal-x" onclick="toggleNotifPanel()">✕</button>
+  </div>
+  <div id="notif-list" style="padding:12px;display:flex;flex-direction:column;gap:6px"></div>
+</div>
+
+<!-- ================================================================
+     TOAST
+     ================================================================ -->
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<!-- ================================================================
+     POST/ITEM OVERLAYS
+     ================================================================ -->
+<div class="overlay" id="post-overlay" onclick="closeOverlay(event,'post-overlay')">
+  <div class="overlay-box">
+    <div id="post-detail-content"></div>
+  </div>
+</div>
+
+<div class="overlay" id="item-overlay" onclick="closeOverlay(event,'item-overlay')">
+  <div class="overlay-box">
+    <div id="item-detail-content"></div>
+  </div>
+</div>
+
+<!-- ================================================================
+     MODALS
+     ================================================================ -->
+
+<!-- Compose Post -->
+<div id="compose-modal" class="modal-backdrop" onclick="closeOnBack(event,'compose-modal')">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">New Post</div>
+      <button class="modal-x" onclick="closeModal('compose-modal')">✕</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <div class="anon-badge" id="anon-toggle" onclick="toggleAnon()">👤 Post Anonymously: OFF</div>
+    </div>
+    <div class="input-group mb-10">
+      <textarea class="input" id="post-body" rows="4" placeholder="Share news, ask for help, celebrate a win..."></textarea>
+    </div>
+    <div class="flex gap-8 mb-12 filter-scroll">
+      <label class="attach-btn" title="Attach Image">📷<input type="file" id="post-img-input" accept="image/*" style="display:none" onchange="handlePostImage(this)"></label>
+      <button class="btn btn-ghost btn-sm" onclick="tagPost('study')">📚 Study</button>
+      <button class="btn btn-ghost btn-sm" onclick="tagPost('event')">📅 Event</button>
+      <button class="btn btn-ghost btn-sm" onclick="tagPost('marketplace')">🛒 Market</button>
+      <button class="btn btn-ghost btn-sm" onclick="tagPost('support')">💙 Support</button>
+      <button class="btn btn-ghost btn-sm" onclick="tagPost('announcement')">📢 Notice</button>
+    </div>
+    <div id="post-img-preview" class="mb-10"></div>
+    <div id="post-tag-display" class="mb-10"></div>
+    <button class="btn btn-primary btn-full" onclick="submitPost()">Post to MakChat</button>
+  </div>
+</div>
+
+<!-- Create Group -->
+<div id="create-group-modal" class="modal-backdrop" onclick="closeOnBack(event,'create-group-modal')">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">Create Group</div>
+      <button class="modal-x" onclick="closeModal('create-group-modal')">✕</button>
+    </div>
+    <div class="flex flex-col gap-12">
+      <div class="grid-2" style="gap:10px">
+        <div class="input-group"><div class="input-label">Group Name</div><input class="input" id="g-name" placeholder="e.g. COCIS Study Crew"></div>
+        <div class="input-group"><div class="input-label">Emoji</div><input class="input" id="g-emoji" placeholder="💻" maxlength="4"></div>
+      </div>
+      <div class="input-group"><div class="input-label">Type</div>
+        <select class="input" id="g-type">
+          <option value="study">📚 Study Group</option>
+          <option value="interest">🎯 Interest Group</option>
+          <option value="project">🛠 Project Team</option>
+          <option value="club">🏛 Club / Association</option>
+          <option value="social">🎉 Social Group</option>
+        </select>
+      </div>
+      <div class="input-group"><div class="input-label">College / Open to All</div>
+        <select class="input" id="g-college">
+          <option value="All">All Colleges</option>
+          <option>COCIS</option><option>CoNAS</option><option>CAES</option><option>CoBAMS</option>
+          <option>CEDAT</option><option>CHS</option><option>CHUSS</option><option>SoL</option>
+          <option>SoE</option><option>MUBS</option><option>MakSPH</option>
+        </select>
+      </div>
+      <div class="grid-2" style="gap:10px">
+        <div class="input-group"><div class="input-label">Max Members</div>
+          <select class="input" id="g-max"><option>5</option><option selected>10</option><option>20</option><option>50</option><option>Unlimited</option></select>
+        </div>
+        <div class="input-group"><div class="input-label">Study Days</div>
+          <input class="input" id="g-days" placeholder="e.g. Mon, Wed, Fri">
+        </div>
+      </div>
+      <div class="input-group"><div class="input-label">Description</div><textarea class="input" id="g-desc" rows="2" placeholder="What's this group about?"></textarea></div>
+    </div>
+    <button class="btn btn-gold btn-full mt-20" onclick="createGroup()">Create Group 🏘️</button>
+  </div>
+</div>
+
+<!-- Create Channel Modal -->
+<div id="create-channel-modal" class="modal-backdrop" onclick="closeOnBack(event,'create-channel-modal')">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">Create Channel 📡</div>
+      <button class="modal-x" onclick="closeModal('create-channel-modal')">✕</button>
+    </div>
+    <div class="flex flex-col gap-12">
+      <div class="input-group"><div class="input-label">Channel Name</div><input class="input" id="cn-name" placeholder="e.g. CS2201 - Data Structures"></div>
+      <div class="input-group"><div class="input-label">Type</div>
+        <select class="input" id="cn-type">
+          <option value="course">📚 Course Unit</option>
+          <option value="department">🏛 Department</option>
+          <option value="interest">💡 Interest Group</option>
+          <option value="research">🔬 Research</option>
+        </select>
+      </div>
+      <div class="input-group"><div class="input-label">College</div>
+        <select class="input" id="cn-college">
+          <option value="All">All Colleges</option>
+          <option>COCIS</option><option>CoNAS</option><option>CAES</option>
+          <option>CoBAMS</option><option>CEDAT</option><option>CHS</option>
+          <option>CHUSS</option><option>SoL</option><option>SoE</option>
+          <option>MUBS</option><option>MakSPH</option>
+        </select>
+      </div>
+      <div class="input-group"><div class="input-label">Description</div><textarea class="input" id="cn-desc" rows="2" placeholder="What is this channel for?"></textarea></div>
+    </div>
+    <button class="btn btn-gold btn-full mt-20" onclick="createChannel()">Create Channel 📡</button>
+  </div>
+</div>
+
+<!-- Rate Gig Modal -->
+<div id="rate-gig-modal" class="modal-backdrop" onclick="closeOnBack(event,'rate-gig-modal')">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">Rate this Service ⭐</div>
+      <button class="modal-x" onclick="closeModal('rate-gig-modal')">✕</button>
+    </div>
+    <div id="rate-gig-content"></div>
+    <input type="hidden" id="rating-gig-id">
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:12px">Tap to rate</div>
+      <div class="star-rating" id="star-rating-input" style="justify-content:center;gap:8px;font-size:32px">
+        <span class="star empty" onclick="setRating(1)">★</span>
+        <span class="star empty" onclick="setRating(2)">★</span>
+        <span class="star empty" onclick="setRating(3)">★</span>
+        <span class="star empty" onclick="setRating(4)">★</span>
+        <span class="star empty" onclick="setRating(5)">★</span>
+      </div>
+    </div>
+    <div class="input-group mb-16"><div class="input-label">Your Review (optional)</div><textarea class="input" id="rating-review" rows="2" placeholder="Share your experience..."></textarea></div>
+    <button class="btn btn-gold btn-full" onclick="submitRating()">Submit Review ⭐</button>
+  </div>
+</div>
+<!-- Group Chat Modal -->
+<div id="group-chat-modal" class="modal-backdrop" onclick="closeOnBack(event,'group-chat-modal')">
+  <div class="modal" style="max-width:520px;padding:0;overflow:hidden;border-radius:18px">
+    <div style="padding:14px 16px;background:var(--blue);display:flex;align-items:center;gap:12px;flex-shrink:0">
+      <button class="modal-x" onclick="closeModal('group-chat-modal')" style="background:rgba(255,255,255,0.2);color:white">✕</button>
+      <div style="flex:1">
+        <div style="font-size:15px;font-weight:700;color:white" id="gc-title">Group Chat</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.7)" id="gc-sub"></div>
+      </div>
+    </div>
+    <div class="group-chat-layout">
+      <div class="group-chat-messages" id="gc-messages"></div>
+      <div class="group-chat-input-row">
+        <label class="attach-btn" title="Attach file or image">📎<input type="file" id="gc-file-input" accept="image/*,.pdf,.doc,.docx,.txt,.pptx,.xlsx" style="display:none" onchange="handleChatFile(this,'group')"></label>
+        <input class="input flex-1" id="gc-input" placeholder="Type a message..." style="font-size:13px;border-radius:20px" onkeydown="if(event.key==='Enter')sendGroupChatMsg()">
+        <button class="btn btn-primary btn-sm" onclick="sendGroupChatMsg()">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="new-chat-modal" class="modal-backdrop" onclick="closeOnBack(event,'new-chat-modal')">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">New Conversation</div>
+      <button class="modal-x" onclick="closeModal('new-chat-modal')">✕</button>
+    </div>
+    <input class="input mb-12" id="chat-search-user" placeholder="🔍 Search student by name..." oninput="renderChatUserSearch(this.value)">
+    <div id="chat-user-results" class="flex flex-col gap-6"></div>
+  </div>
+</div>
+
+<!-- List Marketplace Item -->
+<div id="list-modal" class="modal-backdrop" onclick="closeOnBack(event,'list-modal')">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">List an Item</div>
+      <button class="modal-x" onclick="closeModal('list-modal')">✕</button>
+    </div>
+    <div class="flex flex-col gap-12">
+      <div class="input-group"><div class="input-label">Title</div><input class="input" id="m-title" placeholder="e.g. Cormen Algorithms 4th Ed"></div>
+      <div class="grid-2" style="gap:10px">
+        <div class="input-group"><div class="input-label">Category</div>
+          <select class="input" id="m-cat">
+            <option value="textbooks">📚 Textbooks</option>
+            <option value="notes">📝 Notes</option>
+            <option value="past-papers">📄 Past Papers</option>
+            <option value="tutoring">🎓 Tutoring</option>
+            <option value="equipment">🛠 Equipment</option>
+            <option value="exchange">🔄 Exchange</option>
+            <option value="free">🆓 Free</option>
+            <option value="other">📦 Other</option>
+          </select>
+        </div>
+        <div class="input-group"><div class="input-label">Condition</div>
+          <select class="input" id="m-cond"><option>New</option><option>Very Good</option><option>Good</option><option>Fair</option><option>N/A</option></select>
+        </div>
+      </div>
+      <div class="grid-2" style="gap:10px">
+        <div class="input-group"><div class="input-label">Price (UGX)</div><input class="input" id="m-price" type="number" placeholder="45000 (0 = free)"></div>
+        <div class="input-group"><div class="input-label">Contact</div><input class="input" id="m-contact" placeholder="Phone / WhatsApp"></div>
+      </div>
+      <div class="input-group"><div class="input-label">Description</div><textarea class="input" id="m-desc" rows="2" placeholder="Condition, what's included, faculty relevance..."></textarea></div>
+    </div>
+    <button class="btn btn-gold btn-full mt-20" onclick="createListing()">List Now 🛒</button>
+  </div>
+</div>
+
+<!-- Post Hostel Room -->
+<div id="hostel-modal" class="modal-backdrop" onclick="closeOnBack(event,'hostel-modal')">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">Post Room / Hostel Info</div>
+      <button class="modal-x" onclick="closeModal('hostel-modal')">✕</button>
+    </div>
+    <div class="flex flex-col gap-12">
+      <div class="input-group"><div class="input-label">Title / Hostel Name</div><input class="input" id="h-title" placeholder="e.g. Mitchell Hall – Room Available"></div>
+      <div class="grid-2" style="gap:10px">
+        <div class="input-group"><div class="input-label">Type</div>
+          <select class="input" id="h-type">
+            <option value="campus">🏛 On-Campus Room</option>
+            <option value="offcampus">🏘 Off-Campus Room</option>
+            <option value="roommate">🤝 Roommate Needed</option>
+            <option value="review">⭐ Hostel Review</option>
+            <option value="warning">⚠️ Landlord Warning</option>
+          </select>
+        </div>
+        <div class="input-group"><div class="input-label">Rent (UGX/month)</div><input class="input" id="h-price" type="number" placeholder="250000"></div>
+      </div>
+      <div class="input-group"><div class="input-label">Location / Area</div><input class="input" id="h-location" placeholder="e.g. Lumumba Hall, Kikoni, Wandegeya..."></div>
+      <div class="input-group"><div class="input-label">Details / Review</div><textarea class="input" id="h-desc" rows="3" placeholder="Describe the room, amenities, distance from campus, your experience..."></textarea></div>
+      <div class="input-group"><div class="input-label">Contact</div><input class="input" id="h-contact" placeholder="Phone / WhatsApp"></div>
+    </div>
+    <button class="btn btn-gold btn-full mt-20" onclick="createHostelPost()">Post to Hostel Hub 🏠</button>
+  </div>
+</div>
+
+<!-- Offer a Gig/Skill -->
+<div id="gig-modal" class="modal-backdrop" onclick="closeOnBack(event,'gig-modal')">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">Offer Your Service</div>
+      <button class="modal-x" onclick="closeModal('gig-modal')">✕</button>
+    </div>
+    <div class="flex flex-col gap-12">
+      <div class="input-group"><div class="input-label">Service Title</div><input class="input" id="gi-title" placeholder="e.g. Python Tutoring for Year 1 & 2"></div>
+      <div class="grid-2" style="gap:10px">
+        <div class="input-group"><div class="input-label">Category</div>
+          <select class="input" id="gi-cat">
+            <option value="tutoring">📖 Tutoring</option>
+            <option value="design">🎨 Graphic Design</option>
+            <option value="tech">💻 Tech / Coding</option>
+            <option value="writing">✍️ Writing / Research</option>
+            <option value="photo">📸 Photography / Video</option>
+            <option value="other">🔧 Other</option>
+          </select>
+        </div>
+        <div class="input-group"><div class="input-label">Rate (UGX)</div><input class="input" id="gi-rate" placeholder="e.g. 15000/hr"></div>
+      </div>
+      <div class="input-group"><div class="input-label">Description</div><textarea class="input" id="gi-desc" rows="2" placeholder="What do you offer? Experience, qualifications..."></textarea></div>
+      <div class="input-group"><div class="input-label">Contact / WhatsApp</div><input class="input" id="gi-contact" placeholder="Your phone number"></div>
+    </div>
+    <button class="btn btn-gold btn-full mt-20" onclick="createGig()">Post Service ⚡</button>
+  </div>
+</div>
+
+<!-- Add Event -->
+<div id="event-modal" class="modal-backdrop" onclick="closeOnBack(event,'event-modal')">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">Add Event</div>
+      <button class="modal-x" onclick="closeModal('event-modal')">✕</button>
+    </div>
+    <div class="flex flex-col gap-12">
+      <div class="input-group"><div class="input-label">Event Name</div><input class="input" id="ev-title" placeholder="e.g. COCIS Hackathon 2025"></div>
+      <div class="grid-2" style="gap:10px">
+        <div class="input-group"><div class="input-label">Category</div>
+          <select class="input" id="ev-cat">
+            <option value="academic">📚 Academic</option>
+            <option value="social">🎉 Social</option>
+            <option value="tech">💻 Tech</option>
+            <option value="sports">⚽ Sports</option>
+            <option value="career">💼 Career</option>
+            <option value="cultural">🎭 Cultural</option>
+          </select>
+        </div>
+        <div class="input-group"><div class="input-label">Date</div><input class="input" id="ev-date" type="date"></div>
+      </div>
+      <div class="grid-2" style="gap:10px">
+        <div class="input-group"><div class="input-label">Time</div><input class="input" id="ev-time" type="time"></div>
+        <div class="input-group"><div class="input-label">Venue</div><input class="input" id="ev-venue" placeholder="e.g. Main Hall, Block A"></div>
+      </div>
+      <div class="input-group"><div class="input-label">Description</div><textarea class="input" id="ev-desc" rows="2" placeholder="More details about this event..."></textarea></div>
+      <div class="input-group"><div class="input-label">Organizer / Contact</div><input class="input" id="ev-organizer" placeholder="Your name or club name"></div>
+    </div>
+    <button class="btn btn-gold btn-full mt-20" onclick="createEvent()">Add Event 📅</button>
+  </div>
+</div>
+
+<!-- Post Announcement -->
+<div id="ann-modal" class="modal-backdrop" onclick="closeOnBack(event,'ann-modal')">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">Post Announcement</div>
+      <button class="modal-x" onclick="closeModal('ann-modal')">✕</button>
+    </div>
+    <div class="flex flex-col gap-12">
+      <div class="input-group"><div class="input-label">Title</div><input class="input" id="an-title" placeholder="e.g. CAT Schedule Change - Year 3"></div>
+      <div class="grid-2" style="gap:10px">
+        <div class="input-group"><div class="input-label">Category</div>
+          <select class="input" id="an-cat">
+            <option value="academic">📚 Academic</option>
+            <option value="administrative">🏛 Administrative</option>
+            <option value="guild">👑 Guild</option>
+            <option value="urgent">🔴 Urgent</option>
+          </select>
+        </div>
+        <div class="input-group"><div class="input-label">College</div>
+          <select class="input" id="an-college">
+            <option value="All">All Colleges</option>
+            <option>COCIS</option><option>CoNAS</option><option>CAES</option><option>CoBAMS</option>
+            <option>CEDAT</option><option>CHS</option><option>CHUSS</option><option>SoL</option>
+          </select>
+        </div>
+      </div>
+      <div class="input-group"><div class="input-label">Message</div><textarea class="input" id="an-body" rows="3" placeholder="Full announcement text..."></textarea></div>
+    </div>
+    <button class="btn btn-primary btn-full mt-20" onclick="createAnnouncement()">Post Announcement 📢</button>
+  </div>
+</div>
+
+<!-- Lost & Found -->
+<div id="lf-modal" class="modal-backdrop" onclick="closeOnBack(event,'lf-modal')">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">Report Lost / Found Item</div>
+      <button class="modal-x" onclick="closeModal('lf-modal')">✕</button>
+    </div>
+    <div class="flex flex-col gap-12">
+      <div class="input-group"><div class="input-label">Status</div>
+        <select class="input" id="lf-status">
+          <option value="lost">❌ I Lost This Item</option>
+          <option value="found">✅ I Found This Item</option>
+        </select>
+      </div>
+      <div class="input-group"><div class="input-label">Item Name</div><input class="input" id="lf-title" placeholder="e.g. Student ID Card, Black Laptop Bag"></div>
+      <div class="grid-2" style="gap:10px">
+        <div class="input-group"><div class="input-label">Location</div><input class="input" id="lf-location" placeholder="Where lost/found"></div>
+        <div class="input-group"><div class="input-label">Date</div><input class="input" id="lf-date" type="date"></div>
+      </div>
+      <div class="input-group"><div class="input-label">Description</div><textarea class="input" id="lf-desc" rows="2" placeholder="Color, distinguishing features, what was inside..."></textarea></div>
+      <div class="input-group"><div class="input-label">Contact</div><input class="input" id="lf-contact" placeholder="Phone / WhatsApp"></div>
+    </div>
+    <button class="btn btn-gold btn-full mt-20" onclick="createLFPost()">Submit Report 🔍</button>
+  </div>
+</div>
+
+<!-- Add Portfolio -->
+<div id="add-port-modal" class="modal-backdrop" onclick="closeOnBack(event,'add-port-modal')">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">Add Achievement</div>
+      <button class="modal-x" onclick="closeModal('add-port-modal')">✕</button>
+    </div>
+    <div class="flex flex-col gap-12">
+      <div class="input-group"><div class="input-label">Title</div><input class="input" id="p-title" placeholder="e.g. 1st Prize – COCIS Hackathon 2025"></div>
+      <div class="grid-2" style="gap:10px">
+        <div class="input-group"><div class="input-label">Type</div>
+          <select class="input" id="p-type">
+            <option>Research</option><option>Achievement</option><option>Certification</option>
+            <option>Leadership</option><option>Project</option><option>Volunteer</option><option>Award</option>
+          </select>
+        </div>
+        <div class="input-group"><div class="input-label">Date</div><input class="input" id="p-date" type="month"></div>
+      </div>
+      <div class="input-group"><div class="input-label">Description (optional)</div><textarea class="input" id="p-desc" rows="2" placeholder="More details about this achievement..."></textarea></div>
+    </div>
+    <button class="btn btn-gold btn-full mt-20" onclick="addPortfolioItem()">Add Achievement 🏆</button>
+  </div>
+</div>
+
+<!-- Edit Profile -->
+<div id="edit-profile-modal" class="modal-backdrop" onclick="closeOnBack(event,'edit-profile-modal')">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">Edit Profile</div>
+      <button class="modal-x" onclick="closeModal('edit-profile-modal')">✕</button>
+    </div>
+    <div class="flex flex-col gap-12">
+      <div class="input-group"><div class="input-label">Bio</div><textarea class="input" id="ep-bio" rows="3" placeholder="Tell us about yourself..."></textarea></div>
+      <div class="input-group"><div class="input-label">Course / Programme</div><input class="input" id="ep-course" placeholder="e.g. BSc. Computer Science"></div>
+      <div class="input-group"><div class="input-label">Interests (comma-separated)</div><input class="input" id="ep-interests" placeholder="e.g. AI, Fintech, Photography"></div>
+      <div class="input-group"><div class="input-label">WhatsApp / Phone (optional)</div><input class="input" id="ep-phone" type="tel" placeholder="e.g. +256 700 123456"></div>
+    </div>
+    <button class="btn btn-primary btn-full mt-20" onclick="saveProfileEdit()">Save Changes</button>
+  </div>
+</div>
+
+
+<!-- ================================================================
+     JAVASCRIPT — Modular Architecture
+     Load order matters: appwrite → db → state → auth → ui → features → boot
+     ================================================================ -->
+<script src="js/appwrite.js"></script>
+<script src="js/db.js"></script>
+<script src="js/state.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/home.js"></script>
+<script src="js/feed.js"></script>
+<script src="js/chat.js"></script>
+<script src="js/groups.js"></script>
+<script src="js/channels.js"></script>
+<script src="js/features.js"></script>
+<script src="js/profile.js"></script>
+<script src="js/boot.js"></script>
+
+</body>
+</html>
