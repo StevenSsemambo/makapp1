@@ -2,7 +2,11 @@
 // MakChat — Chat Module (Direct Messages)
 // ================================================================
 
-function renderChat() {
+async function renderChat() {
+  // Always pull fresh chat list from Appwrite when opening Chat tab
+  if (USE_APPWRITE) {
+    await AW.refreshChatList(CU.id);
+  }
   renderChatList();
   if (activeChatId) openChatConvo(activeChatId);
 }
@@ -57,12 +61,23 @@ function renderChatList(filterQ) {
     </div>` : ''}`;
 }
 
-function openChatConvo(chatId) {
+async function openChatConvo(chatId) {
   activeChatId = chatId;
   AW.unsubscribeAll();
+
+  // Pull fresh messages from Appwrite so other person's messages show up
+  if (USE_APPWRITE) await AW.refreshChat(chatId);
+
+  // Realtime subscription for instant new messages
   AW.subscribeToChat(chatId, () => {
     if (activeChatId === chatId) { renderChatMessages(chatId); renderChatList(); }
   });
+
+  // Polling fallback every 3s — catches any missed realtime events
+  AW.startPolling(chatId, () => {
+    if (activeChatId === chatId) { renderChatMessages(chatId); renderChatList(); }
+  });
+
   const chats = allChats(); const chat = chats.find(c => c.id === chatId); if (!chat) return;
   const otherId = chat.participants.find(id => id !== CU.id);
   const other = getUser(otherId); if (!other) return;
@@ -102,6 +117,7 @@ function openChatConvo(chatId) {
 }
 
 function chatGoBack() {
+  AW.stopPolling();
   const listPanel = $('chat-list-panel'); if (listPanel) listPanel.style.display = '';
   $('chat-active').style.display = 'none';
   $('chat-empty').style.display = 'flex';
