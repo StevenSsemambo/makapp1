@@ -8,9 +8,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 1. Initialise Appwrite (falls back to local mode if not configured)
   initAppwrite();
 
-  // 2. Seed local data if first run
-  seedIfEmpty();
-  seedChannels();
+  // 2. Only seed demo data if Appwrite is NOT connected
+  // When Appwrite IS connected, real data comes from the cloud — no demo data needed
+  if (!USE_APPWRITE) {
+    seedIfEmpty();
+    seedChannels();
+  }
 
   // 3. UI defaults
   loadDarkMode();
@@ -18,12 +21,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 4. Keyboard shortcuts
   document.addEventListener('keydown', e => {
-    // Ctrl/Cmd + K → global search
     if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
       e.preventDefault();
       openGlobalSearch();
     }
-    // Escape → close overlays
     if (e.key === 'Escape') {
       const overlays = [
         'post-overlay', 'item-overlay', 'compose-modal', 'list-modal',
