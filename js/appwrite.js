@@ -11,7 +11,7 @@
 
 const APPWRITE_ENDPOINT   = 'https://cloud.appwrite.io/v1'; // change if self-hosted
 const APPWRITE_PROJECT_ID = '69baf48d002a555c0351';              // ← replace
-const DB_ID               = 'YOUR_DATABASE_ID';             // ← replace
+const DB_ID               = '69bb01db0003a31cfe54';             // ← replace
 
 // Collection IDs — set these after creating them in Appwrite Console
 const COLLECTIONS = {
