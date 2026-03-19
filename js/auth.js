@@ -60,7 +60,7 @@ async function doRegister() {
   if (!name || !uname || !email || !pass || !college || !course || !year) {
     toast('All fields are required', 'error'); return;
   }
-  if (pass.length < 8) { toast('Password must be 6+ characters', 'error'); return; }
+  if (pass.length < 6) { toast('Password must be 6+ characters', 'error'); return; }
 
   const rbtn = $('tab-reg-btn');
   if (rbtn) { rbtn.disabled = true; rbtn.textContent = 'Creating account...'; }
@@ -120,7 +120,8 @@ async function confirmLogout() {
 async function doLogout() {
   await AW.logout();
   AW.unsubscribeAll();
-  DB._del('session');
+  // Clear ALL local data on logout so stale seed/demo data never comes back
+  localStorage.clear();
   CU = null;
   $('shell').style.display = 'none';
   $('auth-screen').classList.remove('hidden');
