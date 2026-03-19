@@ -10,8 +10,8 @@
 // ================================================================
 
 const APPWRITE_ENDPOINT   = 'https://cloud.appwrite.io/v1'; // change if self-hosted
-const APPWRITE_PROJECT_ID = '69baf48d002a555c0351';              // ← replace
-const DB_ID               = '69bb01db0003a31cfe54';             // ← replace
+const APPWRITE_PROJECT_ID = 'YOUR_PROJECT_ID';              // ← replace
+const DB_ID               = 'YOUR_DATABASE_ID';             // ← replace
 
 // Collection IDs — set these after creating them in Appwrite Console
 const COLLECTIONS = {
@@ -461,19 +461,29 @@ const AW = {
 
   subscribeToChat(chatId, callback) {
     if (!USE_APPWRITE || !awClient) return;
+    // Correct Appwrite realtime channel format
     const channel = `databases.${DB_ID}.collections.${COLLECTIONS.messages}.documents`;
     const unsub = awClient.subscribe(channel, response => {
-      if (response.events.includes('databases.*.collections.*.documents.*.create')) {
-        const doc = response.payload;
-        if (doc.chat_id !== chatId) return;
-        const msg = AW.fromDoc('messages', doc);
-        const chats = DB._get('chats') || [];
-        const chat = chats.find(c => c.id === chatId);
-        if (chat && !chat.messages.find(m => m.id === msg.id)) {
+      const isCreate = response.events.some(e => e.endsWith('.create'));
+      if (!isCreate) return;
+      const doc = response.payload;
+      if (doc.chat_id !== chatId) return;
+      const msg = AW.fromDoc('messages', doc);
+      const chats = DB._get('chats') || [];
+      const chat = chats.find(c => c.id === chatId);
+      if (chat) {
+        if (!chat.messages) chat.messages = [];
+        if (!chat.messages.find(m => m.id === msg.id)) {
           chat.messages.push(msg);
           DB._set('chats', chats);
           callback(msg);
         }
+      } else {
+        // Chat not in local DB yet — create it and add message
+        const newChat = { id: chatId, participants: [doc.from_user], messages: [msg] };
+        chats.push(newChat);
+        DB._set('chats', chats);
+        callback(msg);
       }
     });
     AW._subs.push(unsub);
@@ -484,13 +494,16 @@ const AW = {
     if (!USE_APPWRITE || !awClient) return;
     const channel = `databases.${DB_ID}.collections.${COLLECTIONS.group_messages}.documents`;
     const unsub = awClient.subscribe(channel, response => {
-      if (response.events.includes('databases.*.collections.*.documents.*.create')) {
-        const doc = response.payload;
-        if (doc.group_id !== groupId) return;
-        const msg = AW.fromDoc('group_messages', doc);
-        const groups = DB._get('groups') || [];
-        const g = groups.find(x => x.id === groupId);
-        if (g && !g.messages.find(m => m.id === msg.id)) {
+      const isCreate = response.events.some(e => e.endsWith('.create'));
+      if (!isCreate) return;
+      const doc = response.payload;
+      if (doc.group_id !== groupId) return;
+      const msg = AW.fromDoc('group_messages', doc);
+      const groups = DB._get('groups') || [];
+      const g = groups.find(x => x.id === groupId);
+      if (g) {
+        if (!g.messages) g.messages = [];
+        if (!g.messages.find(m => m.id === msg.id)) {
           g.messages.push(msg);
           DB._set('groups', groups);
           callback(msg);
@@ -505,14 +518,14 @@ const AW = {
     if (!USE_APPWRITE || !awClient) return;
     const channel = `databases.${DB_ID}.collections.${COLLECTIONS.posts}.documents`;
     const unsub = awClient.subscribe(channel, response => {
-      if (response.events.includes('databases.*.collections.*.documents.*.create')) {
-        const post = AW.fromDoc('posts', response.payload);
-        const posts = DB._get('posts') || [];
-        if (!posts.find(p => p.id === post.id)) {
-          posts.unshift(post);
-          DB._set('posts', posts);
-          callback(post);
-        }
+      const isCreate = response.events.some(e => e.endsWith('.create'));
+      if (!isCreate) return;
+      const post = AW.fromDoc('posts', response.payload);
+      const posts = DB._get('posts') || [];
+      if (!posts.find(p => p.id === post.id)) {
+        posts.unshift(post);
+        DB._set('posts', posts);
+        callback(post);
       }
     });
     AW._subs.push(unsub);
@@ -522,6 +535,91 @@ const AW = {
   unsubscribeAll() {
     AW._subs.forEach(unsub => { try { unsub(); } catch (e) {} });
     AW._subs = [];
+    // Also clear any polling intervals
+    if (AW._pollInterval) { clearInterval(AW._pollInterval); AW._pollInterval = null; }
+  },
+
+  // ── POLL FOR NEW MESSAGES (fallback for when realtime misses) ──
+  _pollInterval: null,
+  _lastPollTs: 0,
+
+  startPolling(chatId, callback) {
+    if (!USE_APPWRITE) return;
+    AW.stopPolling();
+    AW._lastPollTs = Date.now() - 5000; // check last 5 seconds on first poll
+    AW._pollInterval = setInterval(async () => {
+      try {
+        const { Query } = Appwrite;
+        const res = await awDatabases.listDocuments(DB_ID, COLLECTIONS.messages, [
+          Query.equal('chat_id', chatId),
+          Query.greaterThan('created_at', AW._lastPollTs),
+          Query.orderAsc('created_at'),
+          Query.limit(20),
+        ]);
+        if (res.documents.length === 0) return;
+        AW._lastPollTs = Date.now();
+        const chats = DB._get('chats') || [];
+        const chat = chats.find(c => c.id === chatId);
+        if (!chat) return;
+        let hasNew = false;
+        res.documents.forEach(doc => {
+          const msg = AW.fromDoc('messages', doc);
+          if (!chat.messages.find(m => m.id === msg.id)) {
+            chat.messages.push(msg);
+            hasNew = true;
+          }
+        });
+        if (hasNew) { DB._set('chats', chats); callback(); }
+      } catch (e) { /* silent fail — polling is best effort */ }
+    }, 3000); // poll every 3 seconds
+  },
+
+  stopPolling() {
+    if (AW._pollInterval) { clearInterval(AW._pollInterval); AW._pollInterval = null; }
+  },
+
+  // ── PULL FRESH MESSAGES FOR A SPECIFIC CHAT ──────────────────
+  async refreshChat(chatId) {
+    if (!USE_APPWRITE) return;
+    const { Query } = Appwrite;
+    try {
+      const res = await awDatabases.listDocuments(DB_ID, COLLECTIONS.messages, [
+        Query.equal('chat_id', chatId),
+        Query.orderAsc('created_at'),
+        Query.limit(200),
+      ]);
+      const chats = DB._get('chats') || [];
+      let chat = chats.find(c => c.id === chatId);
+      if (!chat) {
+        chat = { id: chatId, participants: [], messages: [] };
+        chats.push(chat);
+      }
+      chat.messages = res.documents.map(d => AW.fromDoc('messages', d));
+      DB._set('chats', chats);
+    } catch (e) { console.error('AW.refreshChat:', e); }
+  },
+
+  // ── PULL FRESH CHAT LIST FOR CURRENT USER ────────────────────
+  async refreshChatList(userId) {
+    if (!USE_APPWRITE) return;
+    const { Query } = Appwrite;
+    try {
+      // Get all chats where user is a participant
+      // Since Appwrite can't query inside JSON arrays, we fetch all and filter locally
+      const res = await awDatabases.listDocuments(DB_ID, COLLECTIONS.chats, [
+        Query.limit(100),
+      ]);
+      const chats = res.documents
+        .map(d => AW.fromDoc('chats', d))
+        .filter(c => (c.participants || []).includes(userId));
+      // Preserve existing messages
+      const existing = DB._get('chats') || [];
+      chats.forEach(chat => {
+        const old = existing.find(c => c.id === chat.id);
+        chat.messages = old ? old.messages : [];
+      });
+      DB._set('chats', chats);
+    } catch (e) { console.error('AW.refreshChatList:', e); }
   },
 
   // ── USER HELPERS ─────────────────────────────────────────────
